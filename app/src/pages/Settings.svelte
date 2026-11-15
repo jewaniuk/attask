@@ -5,6 +5,7 @@
 </script>
 
 <form
+    class="settings"
     onsubmit={(e) => {
         e.preventDefault();
         saveSettings(settings);
@@ -17,5 +18,23 @@
         /></label
     >
     <label>app key <input type="password" bind:value={settings.key} /></label>
-    <button>save</button>
+    <button class="primary">save</button>
 </form>
+
+<style>
+    .settings {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 28rem;
+    }
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        color: var(--muted);
+    }
+    button {
+        align-self: flex-start;
+    }
+</style>
