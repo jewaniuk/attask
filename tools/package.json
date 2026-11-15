@@ -1,0 +1,9 @@
+{
+  "name": "tools",
+  "private": true,
+  "type": "module",
+  "description": "phone testing helpers for attask, see docs/mobile-testing.md",
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
+}

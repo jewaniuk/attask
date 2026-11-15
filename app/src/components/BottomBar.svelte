@@ -49,15 +49,15 @@
         position: fixed;
         left: 0.9rem;
         right: 0.9rem;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 0.8rem);
+        /* --viewport-gap lowers it in a home-screen app (see main.ts); 0.4 of the home indicator inset leaves it about 26px above the screen edge */
+        bottom: calc(env(safe-area-inset-bottom, 0px) * 0.4 + 0.8rem - var(--viewport-gap, 0px));
         z-index: 30;
         display: flex;
         justify-content: space-between;
         padding: 5px;
         border-radius: 999px;
+        /* no backdrop-filter here: iOS clips it at the top 873px of the 932px screen in a home-screen app, cutting off the bottom of the pill */
         background: color-mix(in srgb, var(--card) 78%, transparent);
-        -webkit-backdrop-filter: blur(16px) saturate(1.5);
-        backdrop-filter: blur(16px) saturate(1.5);
         box-shadow: var(--shadow-hover);
     }
     /* sunset gradient outline, drawn as a ring by masking out the middle */
