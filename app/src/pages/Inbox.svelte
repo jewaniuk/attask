@@ -14,6 +14,7 @@
             "Notes:\n- ",
     );
 
+    let list: HTMLElement | undefined = $state();
     /** Whether the add-task pop-up is showing. */
     let open = $state(false);
     /** Tasks just created that the board does not list yet: GitHub adds a new issue to the board a few seconds after creating it. */
@@ -37,7 +38,7 @@
 </script>
 
 <div class="page">
-<div class="list">
+<div class="list" bind:this={list}>
     {#each pending as p (p.number)}
         <div class="pending"><span class="num">#{p.number}</span> {p.title}</div>
     {/each}
@@ -48,7 +49,7 @@
     {/each}
 </div>
 
-<AddTaskDialog bind:open onsubmit={add} />
+<AddTaskDialog bind:open anchor={list} onsubmit={add} />
 
 <div class="actions">
     <button class="pill" onclick={() => (open = true)}><Icon name="plus" size={1.3} />add task</button>
@@ -74,7 +75,10 @@
         max-width: 36rem;
     }
     .pending {
-        padding: 0.6em 0.9em;
+        display: flex;
+        align-items: center;
+        min-height: 3.5rem; /* the height of the pop-up it replaces */
+        padding: 0.45rem 0.8rem;
         color: var(--muted);
         border: 1px dashed var(--border);
         border-radius: 0.6rem;

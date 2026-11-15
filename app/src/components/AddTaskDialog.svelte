@@ -1,8 +1,12 @@
 <script lang="ts">
     import Icon from "./Icon.svelte";
 
-    /** Small pop-up with a title box. Enter or the plus button hands the title to `onsubmit` and closes it; the x, Escape or a tap outside cancels. Args: open: whether it is showing (bindable); onsubmit: called with the trimmed, non-empty title. */
-    let { open = $bindable(false), onsubmit }: { open: boolean; onsubmit: (title: string) => void } = $props();
+    /** Title box that opens over the slot where the new task will land: the top of `anchor`, the task list, with the rest of the screen dimmed. Enter or the plus button hands the title to `onsubmit` and closes it; the x, Escape or a tap outside cancels. Args: open: whether it is showing (bindable); anchor: the list element to sit on top of; onsubmit: called with the trimmed, non-empty title. */
+    let {
+        open = $bindable(false),
+        anchor,
+        onsubmit,
+    }: { open: boolean; anchor: HTMLElement | undefined; onsubmit: (title: string) => void } = $props();
 
     let dialog: HTMLDialogElement;
     let input: HTMLInputElement;
@@ -11,6 +15,11 @@
     $effect(() => {
         if (open && !dialog.open) {
             title = "";
+            // sit where the first card is, kept on screen if the page is scrolled past it
+            const r = anchor?.getBoundingClientRect();
+            dialog.style.top = `${Math.max(r?.top ?? 0, 16)}px`;
+            dialog.style.left = `${r?.left ?? 16}px`;
+            dialog.style.width = `${r?.width ?? 300}px`;
             dialog.showModal();
             input.focus();
         } else if (!open && dialog.open) {
@@ -39,15 +48,18 @@
 </dialog>
 
 <style>
+    /* styled like a task card so it reads as the card being created; top, left and width are set when it opens */
     dialog {
-        width: min(28rem, 100% - 2rem);
-        margin: 18dvh auto auto; /* high up, clear of the phone keyboard */
-        padding: 0.8rem;
+        position: fixed;
+        inset: auto;
+        margin: 0;
+        max-width: calc(100% - 2rem);
+        padding: 0.45rem 0.8rem;
         color: var(--text);
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 14px;
-        box-shadow: var(--shadow-hover);
+        border-radius: 10px;
+        box-shadow: var(--shadow-rest);
     }
     dialog:focus {
         outline: none;
