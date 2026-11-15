@@ -1,0 +1,177 @@
+/* theme: sunset, mirrors the obsidian vault theme (vault.css). fonts are Manrope and Libron */
+@font-face {
+    font-family: "Manrope";
+    font-weight: 400;
+    font-display: swap;
+    src: url("./assets/fonts/manrope-400.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Manrope";
+    font-weight: 500;
+    font-display: swap;
+    src: url("./assets/fonts/manrope-500.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Manrope";
+    font-weight: 600;
+    font-display: swap;
+    src: url("./assets/fonts/manrope-600.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Libron";
+    font-weight: 400;
+    font-display: swap;
+    src: url("./assets/fonts/libron-400.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Libron";
+    font-weight: 700;
+    font-display: swap;
+    src: url("./assets/fonts/libron-700.woff2") format("woff2");
+}
+
+/* light is the default, dark follows the system setting */
+:root {
+    --bg: #fff7f3;
+    --bg-alt: #fdeee8;
+    --border: #f3d9d0;
+    --border-hover: #e8c6bb;
+    --hover: rgba(0, 0, 0, 0.03);
+    --active: #f8dcd2;
+    --text: #2a1820;
+    --muted: #6e5560;
+    --faint: #a08893;
+    --accent: #e0246f;
+    --accent-hover: #b81d5c;
+    --link: #c2570c;
+    --h1: #e0246f;
+    --h2: #d2452f;
+    --h3: #b25b00;
+    --h4: #8a37d0;
+    --sunset: linear-gradient(
+        90deg,
+        #e57c00,
+        #f0473d 30%,
+        #e0246f 55%,
+        #9b3fe6 80%,
+        #3a6fe6
+    );
+
+    --font-ui: "Manrope", -apple-system, BlinkMacSystemFont, system-ui,
+        sans-serif;
+    --font-text: "Libron", Georgia, serif;
+
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #120e16;
+        --bg-alt: #0d0a10;
+        --border: #2a2130;
+        --border-hover: #3a2d42;
+        --hover: rgba(255, 255, 255, 0.04);
+        --active: #2a1d2c;
+        --text: #efe7ee;
+        --muted: #b3a5b6;
+        --faint: #7a6b7f;
+        --accent: #ff5e8a;
+        --accent-hover: #ff8fb0;
+        --link: #ffab70;
+        --h1: #ff5e8a;
+        --h2: #ff7a5c;
+        --h3: #ffb347;
+        --h4: #c58bff;
+        --sunset: linear-gradient(
+            90deg,
+            #ffb347,
+            #ff6a5c 30%,
+            #ff3d8b 55%,
+            #b45cff 80%,
+            #4d8dff
+        );
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* no grey flash when tapping on iOS */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-text);
+    font-weight: 700;
+    line-height: 1.2;
+}
+h1 {
+    color: var(--h1);
+    font-size: 2.1em;
+    margin: 0 0 0.5em;
+}
+h2 {
+    color: var(--h2);
+}
+h3 {
+    color: var(--h3);
+}
+
+a {
+    color: var(--link);
+}
+
+button,
+input {
+    font: inherit;
+    color: inherit;
+}
+
+input {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5em 0.7em;
+}
+input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+}
+
+button.primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: 0;
+    border-radius: 6px;
+    padding: 0.5em 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+}
+button.primary:hover {
+    background: var(--accent-hover);
+}
+
+/* sunset gradient bar along the bottom of the window */
+body::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--sunset);
+    pointer-events: none;
+    z-index: 100;
+}
