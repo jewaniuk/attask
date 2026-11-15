@@ -30,6 +30,9 @@
     });
 </script>
 
+<!-- one dim layer for the whole screen, status bar area included, fading in and out together; the dialog's own backdrop is left clear -->
+<div class="dim" class:on={board.selected !== null}></div>
+
 <!-- the sheet takes the focus itself (see the effect), so the browser doesn't focus the close button -->
 <dialog
     tabindex="-1"
@@ -85,10 +88,20 @@
     dialog:focus {
         outline: none;
     }
-    /* reaches past the screen edges so the dim also covers the status bar area on a phone */
     dialog::backdrop {
-        background: rgba(0, 0, 0, 0.45);
+        background: transparent;
+    }
+    .dim {
+        position: fixed;
         inset: -200px;
+        z-index: 40;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s ease;
+    }
+    .dim.on {
+        opacity: 1;
     }
     header {
         display: flex;
