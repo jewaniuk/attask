@@ -1,8 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import DetailSheet from "./components/DetailSheet.svelte";
     import BottomBar from "./components/BottomBar.svelte";
     import Sidebar from "./components/Sidebar.svelte";
     import Category from "./pages/Category.svelte";
+    import Inbox from "./pages/Inbox.svelte";
+    import Next from "./pages/Next.svelte";
     import Project from "./pages/Project.svelte";
     import Settings from "./pages/Settings.svelte";
     import { board, loadBoard } from "./lib/board.svelte";
@@ -23,7 +26,6 @@
         localStorage.setItem("attask.sidebar", String(sidebarWidth));
     }
 
-    // inbox and next are placeholders until checkpoint C
     let title = $derived.by(() => {
         const route = router.route;
         switch (route.page) {
@@ -74,6 +76,10 @@
             {#key JSON.stringify(router.route)}
                 {#if router.route.page === "settings"}
                     <Settings />
+                {:else if router.route.page === "inbox"}
+                    <Inbox />
+                {:else if router.route.page === "next"}
+                    <Next />
                 {:else if router.route.page === "category"}
                     <Category name={router.route.name} />
                 {:else if router.route.page === "project"}
@@ -85,6 +91,7 @@
 </div>
 
 <div class="bottombar"><BottomBar /></div>
+<DetailSheet />
 
 <style>
     .layout {

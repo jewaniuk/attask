@@ -1,15 +1,16 @@
 <script lang="ts">
-    import { board, tasksOf } from "../lib/board.svelte";
+    import { board, select, tasksOf } from "../lib/board.svelte";
     import type { BoardItem } from "../lib/api";
     import { projectHref } from "../lib/router.svelte";
     import Icon from "./Icon.svelte";
 
-    /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and links to its issue. The whole card is the link. */
-    let { item }: { item: BoardItem } = $props();
+    /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and opens the detail sheet. The whole card is the link or button. Args: item: the card; showProject: also show the task's project title. */
+    let { item, showProject = false }: { item: BoardItem; showProject?: boolean } = $props();
 
     // priority chip colour, one of --pr-1 (!!!) to --pr-4 (-)
     let priorityLevel = $derived(({ "!!!": 1, "!!": 2, "!": 3 } as Record<string, number>)[item.priority ?? ""] ?? 4);
 
+    let project = $derived(board.items.find((i) => i.isProject && i.number === item.parent));
     let taskCount = $derived(item.isProject ? tasksOf(board.items, item.number).length : 0);
 </script>
 
@@ -18,7 +19,7 @@
         {#if item.isProject}
             <a class="title" href={projectHref(item.number)}>{item.title}</a>
         {:else}
-            <a class="title" href={item.url} target="_blank" rel="noopener">{item.title}</a>
+            <button class="title" onclick={() => select(item.number)}>{item.title}</button>
         {/if}
         {#if item.isProject}
             <a class="issue" href={item.url} target="_blank" rel="noopener" aria-label="open issue #{item.number}"><Icon name="link" size={1} /></a>
@@ -29,6 +30,7 @@
             {#if item.priority}<span class="chip priority" style="--pr: var(--pr-{priorityLevel})">{item.priority}</span>{/if}
             <span class="chip">{taskCount} open</span>
         {:else}
+            {#if showProject && project}<span class="chip">{project.title}</span>{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip due"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
@@ -67,6 +69,12 @@
     }
     .title {
         flex: 1;
+        font: inherit;
+        text-align: left;
+        padding: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
         color: var(--text);
         text-decoration: none;
         font-weight: 500;
