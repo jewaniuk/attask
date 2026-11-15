@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { board, select, tasksOf } from "../lib/board.svelte";
+    import { board, drag, select, tasksOf } from "../lib/board.svelte";
     import type { BoardItem } from "../lib/api";
     import { projectHref } from "../lib/router.svelte";
     import Icon from "./Icon.svelte";
@@ -10,18 +10,32 @@
 
     // title of the task's project, only looked up when asked for
     let projectTitle = $derived(showProject ? board.items.find((i) => i.isProject && i.number === item.parent)?.title : undefined);
+    // a drag is a move, so the browser shows no copy (+) cursor; a link inside the card would otherwise be dragged in its place, hence draggable="false" on them
+    function onDragStart(e: DragEvent): void {
+        drag.item = item;
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", String(item.number)); // Firefox only starts a drag that carries data
+        }
+    }
     let taskCount = $derived(item.isProject ? tasksOf(board.items, item.number).length : 0);
 </script>
 
-<article>
+<!-- inbox cards have no parent, so they stay put -->
+<article
+    draggable={item.status !== "inbox"}
+    class:dragging={drag.item?.id === item.id}
+    ondragstart={onDragStart}
+    ondragend={() => (drag.item = null)}
+>
     <div class="top">
         {#if item.isProject}
-            <a class="title" href={projectHref(item.number)}>{item.title}</a>
+            <a class="title" href={projectHref(item.number)} draggable="false">{item.title}</a>
         {:else}
             <button class="title" onclick={() => select(item.number)}>{item.title}</button>
         {/if}
         {#if item.isProject}
-            <a class="issue" href={item.url} target="_blank" rel="noopener" aria-label="open issue #{item.number}"><Icon name="link" size={1} /></a>
+            <a class="issue" href={item.url} target="_blank" rel="noopener" draggable="false" aria-label="open issue #{item.number}"><Icon name="link" size={1} /></a>
         {/if}
     </div>
     <div class="meta">
@@ -54,6 +68,9 @@
             transform: translateY(-3px);
             box-shadow: var(--shadow-hover);
         }
+    }
+    article.dragging {
+        opacity: 0.4;
     }
     /* stretch the title link over the whole card */
     .title::after {
