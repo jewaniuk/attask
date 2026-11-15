@@ -3,27 +3,21 @@ import './theme.css'
 import App from './App.svelte'
 
 /**
- * Sets `--viewport-gap`, the height of the screen that fixed `bottom` offsets miss.
- * In an iPhone home-screen app (iOS 26) the fixed area is as tall as the screen minus
- * the status bar, so `100dvh` is 59px short of `100lvh` and `bottom: 0` floats 59px
- * above the real screen edge. In a Safari tab the two differ with the toolbar, so the
- * gap is only set when running standalone.
+ * Sets `--standalone` to 1 in an iPhone home-screen app and 0 in a Safari tab.
+ * In a home-screen app iOS 26 sometimes makes the fixed area (`100dvh`) shorter than the
+ * screen (`100lvh`) by the status bar height, so `bottom: 0` floats above the real edge.
+ * Styles multiply the live `100lvh - 100dvh` by this, because the shortfall comes and goes
+ * while the app runs; in a Safari tab the two differ with the toolbar and must be left alone.
  */
-function setViewportGap(): void {
-  const probe = document.createElement('div')
-  probe.style.cssText = 'position: fixed; visibility: hidden; height: 100lvh'
-  document.body.append(probe)
+function setStandalone(): void {
   const standalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
-  const gap = standalone ? probe.getBoundingClientRect().height - window.innerHeight : 0
-  probe.remove()
-  document.documentElement.style.setProperty('--viewport-gap', `${gap}px`)
+  document.documentElement.style.setProperty('--standalone', standalone ? '1' : '0')
 }
 
 const app = mount(App, {
   target: document.getElementById('app')!,
 })
 
-setViewportGap()
-window.addEventListener('resize', setViewportGap)
+setStandalone()
 
 export default app
