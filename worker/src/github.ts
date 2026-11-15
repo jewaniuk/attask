@@ -1,4 +1,29 @@
-import type { BoardItem } from './types';
+import type { StatusWrite } from './rules';
+import type { BoardItem, ItemDetail } from './types';
+
+const PROJECT_ID = 'PVT_kwHOA965uc4BrYgp';
+const STATUS_FIELD_ID = 'PVTSSF_lAHOA965uc4BrYgpzhpre8k';
+// Status option ids, from ~/tasks/CLAUDE.md
+const STATUS_OPTIONS: Record<string, string> = {
+	inbox: 'f75ad846',
+	backlog: '47fc9ee4',
+	next: '98236657',
+	doing: '181b5ff2',
+	waiting: '4870a0fc',
+	done: '023ca80c',
+};
+
+/** Runs one GraphQL request against GitHub and returns its `data`. Throws if GitHub reports errors. */
+async function graphql(token: string, query: string, variables: Record<string, unknown>): Promise<any> {
+	const res = await fetch('https://api.github.com/graphql', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'attask-worker' },
+		body: JSON.stringify({ query, variables }),
+	});
+	const json: any = await res.json();
+	if (json.errors) throw new Error(JSON.stringify(json.errors));
+	return json.data;
+}
 
 const QUERY = `
 query($cursor: String) {
@@ -41,15 +66,9 @@ export async function fetchBoard(token: string): Promise<BoardItem[]> {
 	let cursor: string | null = null;
 
 	while (true) {
-		const res = await fetch('https://api.github.com/graphql', {
-			method: 'POST',
-			headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'attask-worker' },
-			body: JSON.stringify({ query: QUERY, variables: { cursor } }),
-		});
-		const json: any = await res.json();
-		if (json.errors) throw new Error(JSON.stringify(json.errors));
+		const data = await graphql(token, QUERY, { cursor });
 
-		const page = json.data.user.projectV2.items;
+		const page = data.user.projectV2.items;
 		for (const node of page.nodes) {
 			if (!node.content?.number) continue; // drafts and prs has no issue number
 
@@ -78,4 +97,43 @@ export async function fetchBoard(token: string): Promise<BoardItem[]> {
 		if (!page.pageInfo.hasNextPage) return items;
 		cursor = page.pageInfo.endCursor;
 	}
+}
+
+/**
+ * Sets the Status of several items in one GraphQL request, so they apply together.
+ *
+ * Args:
+ * 	token: GitHub token.
+ * 	writes: The changes from `planStatus`.
+ */
+export async function writeStatuses(token: string, writes: StatusWrite[]): Promise<void> {
+	if (writes.length === 0) return;
+	const mutations = writes.map(
+		(w, i) => `m${i}: updateProjectV2ItemFieldValue(input: {
+			projectId: "${PROJECT_ID}", itemId: "${w.id}", fieldId: "${STATUS_FIELD_ID}",
+			value: { singleSelectOptionId: "${STATUS_OPTIONS[w.status]}" }
+		}) { clientMutationId }`,
+	);
+	await graphql(token, `mutation { ${mutations.join('\n')} }`, {});
+}
+
+/**
+ * Fetches an issue's body and comments, rendered to HTML by GitHub.
+ *
+ * Args:
+ * 	token: GitHub token.
+ * 	number: Issue number.
+ */
+export async function fetchDetail(token: string, number: number): Promise<ItemDetail> {
+	const query = `
+	query($n: Int!) {
+		repository(owner: "jewaniuk", name: "tasks") {
+			issue(number: $n) {
+				bodyHTML
+				comments(first: 50) { nodes { createdAt bodyHTML } }
+			}
+		}
+	}`;
+	const issue = (await graphql(token, query, { n: number })).repository.issue;
+	return { bodyHtml: issue.bodyHTML, comments: issue.comments.nodes.map((c: any) => ({ createdAt: c.createdAt, bodyHtml: c.bodyHTML })) };
 }

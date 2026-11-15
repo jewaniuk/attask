@@ -3,7 +3,7 @@
     import { categoryHref, router } from "../lib/router.svelte";
     import Icon, { categoryIcon, type IconName } from "./Icon.svelte";
 
-    /** Floating pill at the bottom of a phone screen for moving between inbox, next, the categories and settings. The current page shows its name. */
+    /** Floating pill at the bottom of a phone screen for moving between inbox, next, the categories and settings. The current page shows its name. Tapping a slot gives a haptic tick on iPhone. */
 
     let categories = $derived(categoryNames(board.items));
 
@@ -28,6 +28,18 @@
         <a href={link.href} class:current={current === link.id} aria-label={link.id}>
             <Icon name={link.icon} size={1.4} />
             <span class="label" aria-hidden="true"><span>{link.id}</span></span>
+            <!-- iPhone only gives a tick when a finger toggles a real switch, so a see-through one covers the slot and does the navigating -->
+            <input
+                class="tap"
+                type="checkbox"
+                tabindex="-1"
+                aria-hidden="true"
+                {...{ switch: "" }}
+                onchange={(e) => {
+                    e.currentTarget.checked = false;
+                    location.hash = link.href;
+                }}
+            />
         </a>
     {/each}
 </nav>
@@ -65,6 +77,8 @@
     }
     /* every slot shares the width equally and the current one grows, so the total never changes and the other icons only slide smoothly */
     a {
+        position: relative;
+        overflow: hidden;
         display: flex;
         flex: 1 1 0;
         min-width: 0;
@@ -86,6 +100,14 @@
     a :global(svg) {
         will-change: transform;
         transform: translateZ(0);
+    }
+    .tap {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: 0;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.2);
     }
     .label {
         max-width: 0;

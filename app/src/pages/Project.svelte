@@ -12,8 +12,10 @@
     let start = $derived(project?.status === "backlog" || project?.status === "waiting" ? project.status : "doing");
 </script>
 
-{#if project?.category}
-    <a class="back" href={categoryHref(project.category)}><Icon name="chevron" size={0.9} />{project.category}</a>
+{#if project}
+    {#if project.category}
+        <a class="back" href={categoryHref(project.category)}><Icon name="chevron" size={0.9} />{project.category}</a>
+    {/if}
 {/if}
 {#if project}
     <Board statuses={["backlog", "next", "doing", "waiting"]} items={tasksOf(board.items, number)} {start} />

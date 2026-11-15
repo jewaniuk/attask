@@ -1,10 +1,16 @@
-import { fetchBoard, type BoardItem } from "./api";
+import { fetchBoard, postStatus, type BoardItem, type StatusWrite } from "./api";
 
 /** Board state shared by every component. Fill it with `loadBoard`. */
-export const board: { items: BoardItem[]; error: string } = $state({
+export const board: { items: BoardItem[]; error: string; selected: number | null } = $state({
     items: [],
     error: "",
+    selected: null,
 });
+
+/** Opens the detail sheet for a task, or closes it with `null`. */
+export function select(number: number | null): void {
+    board.selected = number;
+}
 
 /** Fetches the board from the Worker into `board`, putting any failure in `board.error`. */
 export async function loadBoard(): Promise<void> {
@@ -46,4 +52,49 @@ function rank(priority: string | null): number {
     const order = ["!!!", "!!", "!", "-"];
     const at = priority === null ? -1 : order.indexOf(priority);
     return at === -1 ? order.length : at;
+}
+
+// shows what the Worker changed; a done task is closed by the board, so it leaves the open lists
+function apply(writes: StatusWrite[]): void {
+    for (const w of writes) {
+        const item = board.items.find((i) => i.id === w.id);
+        if (item) {
+            item.status = w.status;
+            item.open = w.status !== "done";
+        }
+    }
+}
+
+/** Sets an item's status: the card moves at once, then the Worker's answer (including tasks paused with a project) is applied. If the Worker refuses, the card goes back and the reason is put in `board.error`. */
+export async function changeStatus(item: BoardItem, status: string): Promise<void> {
+    const before = { status: item.status, open: item.open };
+    apply([{ id: item.id, number: item.number, status }]);
+    try {
+        apply(await postStatus(item.id, status));
+        board.error = "";
+    } catch (e) {
+        item.status = before.status;
+        item.open = before.open;
+        board.error = e instanceof Error ? e.message : String(e);
+    }
+}
+
+/** Open tasks without a project, newest first. */
+export function inboxTasks(items: BoardItem[]): BoardItem[] {
+    return items.filter((i) => i.open && !i.isProject && i.status === "inbox").sort((a, b) => b.number - a.number);
+}
+
+/** Tasks to do now, per category: `next` or `doing` tasks of `doing` projects, ordered by project priority, then `doing` before `next`. */
+export function nextTasks(items: BoardItem[]): { category: string; tasks: BoardItem[] }[] {
+    const groups: { category: string; tasks: BoardItem[] }[] = [];
+    for (const category of categoryNames(items)) {
+        const projects = projectsIn(items, category).filter((p) => p.status === "doing");
+        const tasks = projects.flatMap((p) =>
+            tasksOf(items, p.number)
+                .filter((t) => t.status === "next" || t.status === "doing")
+                .sort((a, b) => Number(b.status === "doing") - Number(a.status === "doing") || a.number - b.number),
+        );
+        if (tasks.length > 0) groups.push({ category, tasks });
+    }
+    return groups;
 }

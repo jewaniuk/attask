@@ -1,4 +1,5 @@
-import { fetchBoard } from './github';
+import { fetchBoard, fetchDetail, writeStatuses } from './github';
+import { planStatus } from './rules';
 
 async function route(request: Request, env: Env): Promise<Response> {
 	const url = new URL(request.url);
@@ -9,6 +10,21 @@ async function route(request: Request, env: Env): Promise<Response> {
 
 	if (request.method === 'GET' && url.pathname === '/board') {
 		return Response.json(await fetchBoard(env.GITHUB_TOKEN));
+	}
+
+	const detail = url.pathname.match(/^\/issues\/(\d+)\/detail$/);
+	if (request.method === 'GET' && detail) {
+		return Response.json(await fetchDetail(env.GITHUB_TOKEN, Number(detail[1])));
+	}
+
+	const edit = url.pathname.match(/^\/items\/([\w-]+)\/status$/);
+	if (request.method === 'POST' && edit) {
+		const body: any = await request.json();
+		const items = await fetchBoard(env.GITHUB_TOKEN);
+		const plan = planStatus(items, edit[1], String(body.status));
+		if (!plan.ok) return Response.json({ error: plan.reason }, { status: 409 });
+		await writeStatuses(env.GITHUB_TOKEN, plan.writes);
+		return Response.json({ writes: plan.writes });
 	}
 
 	return new Response('not found', { status: 404 });
