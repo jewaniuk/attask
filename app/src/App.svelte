@@ -100,22 +100,24 @@
         border-right: 1px solid var(--border);
         position: relative;
     }
-    /* thin drag handle on the sidebar's right edge */
+    /* wide invisible grab area with a thin line that shows on hover */
     .resizer {
         position: absolute;
         top: 0;
         bottom: 0;
-        right: -3px;
-        width: 7px;
+        right: -4px;
+        width: 9px;
         cursor: col-resize;
         touch-action: none;
         z-index: 6;
-        transition: background 0.15s ease;
+        background: linear-gradient(var(--accent), var(--accent)) center / 2px 100% no-repeat;
+        opacity: 0;
+        transition: opacity 0.15s ease;
     }
     .resizer:hover,
     .resizer:active,
     .resizer:focus-visible {
-        background: var(--border-hover);
+        opacity: 0.6;
         outline: none;
     }
     main {
@@ -157,40 +159,21 @@
         .resizer {
             display: none;
         }
-        /* the header is slightly see-through and blurs the cards scrolling under it */
+        /* keep clear of the status bar in the installed app */
         .pagehead {
-            padding: 0.7rem 1.5rem 0.5rem;
-            background: color-mix(in srgb, var(--bg) 72%, transparent);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            backdrop-filter: blur(16px) saturate(1.4);
+            padding: calc(env(safe-area-inset-top, 0px) + 0.7rem) 1.5rem 0.5rem;
         }
-        /* a long title stays on one line and is cut with an ellipsis */
         .pagehead h1 {
             font-size: 1.6em;
-            line-height: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            line-height: 1.15;
         }
-        .content {
-            padding: 0.5rem 1.5rem 1rem;
-        }
-        /* glass button: translucent, blurred, with a soft edge and highlight */
         .menu {
-            display: grid;
-            place-items: center;
-            flex: none;
-            width: 2.5rem;
-            height: 2.5rem;
-            padding: 0;
-            border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
-            border-radius: 50%;
-            background: color-mix(in srgb, var(--bg-alt) 55%, transparent);
-            -webkit-backdrop-filter: blur(12px) saturate(1.6);
-            backdrop-filter: blur(12px) saturate(1.6);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
+            display: block;
+            background: none;
+            border: 0;
+            padding: 0.2rem 0.4rem;
             line-height: 0;
-            color: var(--text);
+            color: var(--muted);
             cursor: pointer;
         }
         aside {

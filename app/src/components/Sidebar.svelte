@@ -65,6 +65,12 @@
         padding: 1rem 0.6rem;
         overflow-y: auto;
     }
+    /* drawer on a phone: clear of the notch and the screen edge */
+    @media (max-width: 768px) {
+        nav {
+            padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1.2rem 1rem calc(env(safe-area-inset-left, 0px) + 1.2rem);
+        }
+    }
     h4 {
         margin: 1.4em 0.6rem 0.3em;
         color: var(--h4);
