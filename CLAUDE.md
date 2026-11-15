@@ -6,7 +6,7 @@ The repo is public and holds no board data. Never commit tokens, keys or real ta
 
 ## Layout
 
-Two independent packages, no npm workspaces. Run npm commands inside each. `tools/` holds phone testing helpers (Playwright, USB iPhone inspector), see `docs/mobile-testing.md` and the `phone-test` skill; it is not part of the gate.
+Two independent packages, no npm workspaces. Run npm commands inside each. `tools/` holds phone testing helpers (Playwright, USB iPhone inspector), see `docs/mobile-testing.md` and the `phone-test` skill; it is not part of the gate. `tools/make-icons.mjs` redraws the app icons. Deploy steps: `docs/deploy.md`.
 
 - `app/` Vite + Svelte 5 + TypeScript, plain CSS, hash router. Deployed to GitHub Pages.
 - `worker/` Cloudflare Worker. Holds the GitHub token, exposes a few board actions, applies the board rules. `src/types.ts` is imported by the app too, so keep it free of Worker-only code.
