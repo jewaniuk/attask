@@ -3,12 +3,10 @@
     import type { BoardItem } from "../lib/api";
     import { projectHref } from "../lib/router.svelte";
     import Icon from "./Icon.svelte";
+    import PriorityMenu from "./PriorityMenu.svelte";
 
     /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and opens the detail sheet. The whole card is the link or button. Args: item: the card; showProject: also show the task's project title. */
     let { item, showProject = false }: { item: BoardItem; showProject?: boolean } = $props();
-
-    // priority chip colour, one of --pr-1 (!!!) to --pr-4 (-)
-    let priorityLevel = $derived(({ "!!!": 1, "!!": 2, "!": 3 } as Record<string, number>)[item.priority ?? ""] ?? 4);
 
     // title of the task's project, only looked up when asked for
     let projectTitle = $derived(showProject ? board.items.find((i) => i.isProject && i.number === item.parent)?.title : undefined);
@@ -28,7 +26,7 @@
     </div>
     <div class="meta">
         {#if item.isProject}
-            {#if item.priority}<span class="chip priority" style="--pr: var(--pr-{priorityLevel})">{item.priority}</span>{/if}
+            <PriorityMenu {item} />
             <span class="chip">{taskCount} open</span>
         {:else}
             {#if item.status === "inbox"}<span class="chip">#{item.number}</span>{/if}
@@ -107,10 +105,5 @@
         background: var(--bg-alt);
         color: var(--muted);
         font-size: 0.82em;
-    }
-    .priority {
-        color: var(--pr);
-        background: color-mix(in srgb, var(--pr) 15%, transparent);
-        font-weight: 600;
     }
 </style>
