@@ -1,5 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import Icon from "./components/Icon.svelte";
+    import StatusMenu from "./components/StatusMenu.svelte";
     import DetailSheet from "./components/DetailSheet.svelte";
     import BottomBar from "./components/BottomBar.svelte";
     import Sidebar from "./components/Sidebar.svelte";
@@ -40,6 +42,12 @@
             default:
                 return "inbox";
         }
+    });
+
+    // the open project's own status menu sits in the page head, so it stays at the right edge when a wide board scrolls sideways
+    let headProject = $derived.by(() => {
+        const route = router.route;
+        return route.page === "project" ? board.items.find((i) => i.number === route.number && i.isProject) : undefined;
     });
 
     // pull down from the top of the page on a phone to reload the board
@@ -100,6 +108,7 @@
     <main bind:this={main} ontouchstart={touchStart} ontouchmove={touchMove} ontouchend={touchEnd} ontouchcancel={touchEnd}>
         <div class="pagehead">
             <h1>{title}</h1>
+            {#if headProject}<StatusMenu item={headProject} />{/if}
         </div>
         <div class="content">
             {#if board.error}<p class="error">{board.error}</p>{/if}
@@ -122,7 +131,10 @@
 </div>
 
 {#if pull > 0}
-    <div class="pull" style="transform: translateY({pull}px)">{refreshing ? "refreshing ..." : pull >= pullNeeded ? "release to refresh" : "pull to refresh"}</div>
+    <!-- round badge that drops from the top edge, turning as you pull and spinning while it loads -->
+    <div class="pull" style="transform: translateY({pull}px); opacity: {Math.min(1, pull / pullNeeded)}">
+        <span class:spin={refreshing} style="transform: rotate({pull * 4}deg)"><Icon name="refresh" size={1.2} /></span>
+    </div>
 {/if}
 
 <div class="bottombar"><BottomBar /></div>
@@ -167,6 +179,7 @@
     .pagehead {
         position: sticky;
         top: 0;
+        left: 0;
         z-index: 5;
         display: flex;
         align-items: center;
@@ -181,23 +194,41 @@
         padding: 0.5rem 3rem 1.5rem;
     }
     .pagehead h1 {
+        flex: 1;
         min-width: 0;
     }
     .error {
         color: var(--accent);
     }
 
-    /* slides down from the top edge, under the status bar */
+    /* starts hidden above the screen and travels down with the pull, under the status bar */
     .pull {
         position: fixed;
-        top: calc(env(safe-area-inset-top, 0px) - 2rem);
-        left: 0;
-        right: 0;
+        top: calc(env(safe-area-inset-top, 0px) - 2.4rem);
+        left: 50%;
+        margin-left: -1.1rem;
         z-index: 20;
-        text-align: center;
-        color: var(--muted);
-        font-size: 0.85em;
+        display: grid;
+        place-items: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 50%;
+        background: var(--card);
+        color: var(--accent);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-hover);
         pointer-events: none;
+    }
+    .pull span {
+        display: grid;
+    }
+    .pull .spin {
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .bottombar {

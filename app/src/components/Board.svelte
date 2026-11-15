@@ -43,10 +43,6 @@
         grid-auto-columns: minmax(240px, 1fr);
         gap: 1rem;
         align-items: start;
-        /* the board scrolls sideways by itself, so what sits above it stays put; the padding leaves room for the card lift and shadow */
-        overflow-x: auto;
-        padding: 8px 8px 20px;
-        margin: -8px -8px 0;
     }
     section {
         background: color-mix(in srgb, var(--st) var(--st-tint), var(--bg-alt));

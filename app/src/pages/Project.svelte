@@ -1,11 +1,10 @@
 <script lang="ts">
     import Board from "../components/Board.svelte";
     import Icon from "../components/Icon.svelte";
-    import StatusMenu from "../components/StatusMenu.svelte";
     import { board, tasksOf } from "../lib/board.svelte";
     import { categoryHref } from "../lib/router.svelte";
 
-    /** Kanban of one project's open tasks by status, with a link back to its category and the project's own status menu (pausing a project pauses its tasks). */
+    /** Kanban of one project's open tasks by status, with a link back to its category. */
     let { number }: { number: number } = $props();
 
     let project = $derived(board.items.find((i) => i.number === number && i.isProject));
@@ -14,12 +13,9 @@
 </script>
 
 {#if project}
-    <div class="bar">
-        {#if project.category}
-            <a class="back" href={categoryHref(project.category)}><Icon name="chevron" size={0.9} />{project.category}</a>
-        {/if}
-        <StatusMenu item={project} />
-    </div>
+    {#if project.category}
+        <a class="back" href={categoryHref(project.category)}><Icon name="chevron" size={0.9} />{project.category}</a>
+    {/if}
 {/if}
 {#if project}
     <Board statuses={["backlog", "next", "doing", "waiting"]} items={tasksOf(board.items, number)} {start} />
@@ -28,16 +24,11 @@
 {/if}
 
 <style>
-    .bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.8rem;
-    }
     .back {
         display: inline-flex;
         align-items: center;
         gap: 0.2em;
+        margin-bottom: 0.8rem;
         color: var(--muted);
         text-decoration: none;
     }
