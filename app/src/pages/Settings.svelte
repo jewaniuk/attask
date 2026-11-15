@@ -2,7 +2,10 @@
     import { version } from "../../package.json";
     import { clearSettings, loadSettings, saveSettings, testConnection } from "../lib/api";
     import { board, loadBoard } from "../lib/board.svelte";
-    import { setTheme, theme, themes } from "../lib/theme.svelte";
+    import { setTheme, theme, themes, type Theme } from "../lib/theme.svelte";
+    import Icon, { type IconName } from "../components/Icon.svelte";
+
+    const themeIcons: Record<Theme, IconName> = { system: "desktop", light: "sun", dark: "moon" };
 
     /** Settings page: theme, the Worker connection (address and app key, kept on this device), and about. */
     let settings = $state(loadSettings());
@@ -40,10 +43,11 @@
 
 <div class="page">
     <section>
-        <h2>appearance</h2>
+        <h3>appearance</h3>
         <div class="segmented" role="group" aria-label="theme">
             {#each themes as choice}
                 <button class:on={theme.choice === choice} aria-pressed={theme.choice === choice} onclick={() => setTheme(choice)}>
+                    <Icon name={themeIcons[choice]} />
                     {choice === "system" ? "match system" : choice}
                 </button>
             {/each}
@@ -51,7 +55,7 @@
     </section>
 
     <section>
-        <h2>connection</h2>
+        <h3>connection</h3>
         <form
             onsubmit={(e) => {
                 e.preventDefault();
@@ -63,7 +67,7 @@
                 app key
                 <span class="key">
                     <input type={showKey ? "text" : "password"} bind:value={settings.key} />
-                    <button type="button" onclick={() => (showKey = !showKey)}>{showKey ? "hide" : "show"}</button>
+                    <button type="button" aria-label={showKey ? "hide app key" : "show app key"} onclick={() => (showKey = !showKey)}><Icon name={showKey ? "eye-slash" : "eye"} /></button>
                 </span>
             </label>
             <div class="actions">
@@ -76,8 +80,12 @@
     </section>
 
     <section>
-        <h2>about</h2>
-        <p class="about">attask {version} · <a href="https://github.com/jewaniuk/attask" target="_blank" rel="noopener">source on GitHub</a></p>
+        <h3>about</h3>
+        <p class="about">
+            <img src="{import.meta.env.BASE_URL}favicon.svg" alt="" />
+            attask {version}
+        </p>
+        <a class="repo" href="https://github.com/jewaniuk/attask" target="_blank" rel="noopener"><Icon name="github-logo" />source on GitHub</a>
     </section>
 </div>
 
@@ -88,12 +96,8 @@
         gap: 2rem;
         max-width: 28rem;
     }
-    h2 {
-        margin: 0 0 0.6rem;
-        font-size: 0.85em;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        color: var(--muted);
+    h3 {
+        margin: 0 0 0.5rem;
     }
     form {
         display: flex;
@@ -139,6 +143,10 @@
         border-radius: 10px;
     }
     .segmented button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4em;
         flex: 1;
         padding: 0.4em 0.6em;
         color: var(--muted);
@@ -152,11 +160,26 @@
         background: var(--card);
         box-shadow: var(--shadow-rest);
     }
+    .key button {
+        display: inline-flex;
+        align-items: center;
+    }
     .about {
-        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 0.5rem;
         color: var(--muted);
     }
-    .about a {
+    .about img {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+    .repo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4em;
         color: var(--accent);
+        text-decoration: none;
     }
 </style>
