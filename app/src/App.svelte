@@ -14,13 +14,13 @@
             case "category":
                 return route.name;
             case "project":
-                return `Project #${route.number}`;
+                return `project ${route.number}`;
             case "settings":
-                return "Settings";
+                return "settings";
             case "next":
-                return "Next";
+                return "next";
             default:
-                return "Inbox";
+                return "inbox";
         }
     });
 
@@ -28,24 +28,22 @@
 </script>
 
 <div class="layout">
-    <header>
-        <button aria-label="open menu" onclick={() => (drawerOpen = true)}>☰</button>
-        <span>{title}</span>
-    </header>
-
     <button class="backdrop" class:open={drawerOpen} aria-label="close menu" tabindex={drawerOpen ? 0 : -1} onclick={() => (drawerOpen = false)}></button>
     <aside class:open={drawerOpen}>
         <Sidebar onnavigate={() => (drawerOpen = false)} />
     </aside>
 
     <main>
-        {#if board.error}<p class="error">{board.error}</p>{/if}
-        {#if router.route.page === "settings"}
-            <h1>Settings</h1>
-            <Settings />
-        {:else}
+        <div class="pagehead">
+            <button class="menu" aria-label="open menu" onclick={() => (drawerOpen = true)}>☰</button>
             <h1>{title}</h1>
-        {/if}
+        </div>
+        <div class="content">
+            {#if board.error}<p class="error">{board.error}</p>{/if}
+            {#if router.route.page === "settings"}
+                <Settings />
+            {/if}
+        </div>
     </main>
 </div>
 
@@ -62,10 +60,26 @@
         overflow: hidden;
     }
     main {
-        padding: 1.5rem 3rem;
         overflow: auto;
     }
-    header,
+    /* the title stays on top while the content scrolls under it */
+    .pagehead {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 1.5rem 3rem 0.5rem;
+        background: var(--bg);
+    }
+    .pagehead h1 {
+        margin: 0;
+    }
+    .content {
+        padding: 0.5rem 3rem 1.5rem;
+    }
+    .menu,
     .backdrop {
         display: none;
     }
@@ -77,21 +91,21 @@
     @media (max-width: 768px) {
         .layout {
             grid-template-columns: 1fr;
-            grid-template-rows: auto minmax(0, 1fr);
         }
-        header {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 0.6rem 1rem;
-            background: var(--bg-alt);
-            border-bottom: 1px solid var(--border);
-            font-weight: 600;
+        .pagehead {
+            padding: 0.8rem 1rem 0.4rem;
         }
-        header button {
+        .content {
+            padding: 0.5rem 1.5rem 1rem;
+        }
+        .menu {
+            display: block;
             background: none;
             border: 0;
-            font-size: 1.4em;
+            padding: 0.2rem 0.4rem;
+            font-size: 1.6em;
+            line-height: 1;
+            color: var(--muted);
             cursor: pointer;
         }
         aside {
@@ -119,9 +133,6 @@
         .backdrop.open {
             opacity: 1;
             pointer-events: auto;
-        }
-        main {
-            padding: 1rem 1.5rem;
         }
     }
 </style>

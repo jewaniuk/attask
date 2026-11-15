@@ -16,10 +16,10 @@
 </script>
 
 <nav>
-    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox" onclick={onnavigate}>Inbox</a>
-    <a class="row" class:current={router.route.page === "next"} href="#/next" onclick={onnavigate}>Next</a>
+    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox" onclick={onnavigate}>inbox</a>
+    <a class="row" class:current={router.route.page === "next"} href="#/next" onclick={onnavigate}>next</a>
 
-    <h4>Categories</h4>
+    <h4>categories</h4>
     {#each categories as name}
         <div
             class="row"
@@ -52,7 +52,7 @@
         {/if}
     {/each}
 
-    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings" onclick={onnavigate}>Settings</a>
+    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings" onclick={onnavigate}>settings</a>
 </nav>
 
 <style>
@@ -80,8 +80,10 @@
         text-decoration: none;
         transition: background 0.15s ease, color 0.15s ease;
     }
-    .row:hover {
-        background: var(--hover);
+    @media (hover: hover) {
+        .row:hover {
+            background: var(--hover);
+        }
     }
     .grow {
         flex: 1;

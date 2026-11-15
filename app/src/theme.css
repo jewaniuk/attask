@@ -97,6 +97,11 @@
     box-sizing: border-box;
 }
 
+/* no grey flash when tapping on iOS */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     margin: 0;
     background: var(--bg);
