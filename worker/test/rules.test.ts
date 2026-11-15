@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planStatus } from '../src/rules';
+import { planPriority, planStatus } from '../src/rules';
 import type { BoardItem } from '../src/types';
 
 function item(over: Partial<BoardItem>): BoardItem {
@@ -68,5 +68,31 @@ describe('planStatus', () => {
 	});
 	it('refuses an unknown item', () => {
 		expect(planStatus(board, 'nope', 'done').ok).toBe(false);
+	});
+});
+
+describe('planPriority', () => {
+	const projects: BoardItem[] = [
+		item({ number: 1, isProject: true, priority: '!!' }),
+		item({ number: 2, isProject: true, priority: null }),
+		item({ number: 10, parent: 1, status: 'next' }),
+	];
+	it('changes a project priority', () => {
+		expect(planPriority(projects, 'id1', '!!!')).toEqual({ ok: true, write: { id: 'id1', number: 1, priority: '!!!' } });
+	});
+	it('sets a priority on a project that has none', () => {
+		expect(planPriority(projects, 'id2', '-')).toEqual({ ok: true, write: { id: 'id2', number: 2, priority: '-' } });
+	});
+	it('does nothing when the priority is the same', () => {
+		expect(planPriority(projects, 'id1', '!!')).toEqual({ ok: true, write: null });
+	});
+	it('refuses a task', () => {
+		expect(planPriority(projects, 'id10', '!').ok).toBe(false);
+	});
+	it('refuses an unknown priority', () => {
+		expect(planPriority(projects, 'id1', 'urgent').ok).toBe(false);
+	});
+	it('refuses an unknown item', () => {
+		expect(planPriority(projects, 'nope', '!').ok).toBe(false);
 	});
 });

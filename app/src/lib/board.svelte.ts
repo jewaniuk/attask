@@ -1,10 +1,11 @@
-import { closeTaskNotPlanned, deleteTask, fetchBoard, postStatus, type BoardItem, type StatusWrite } from "./api";
+import { closeTaskNotPlanned, deleteTask, fetchBoard, postPriority, postStatus, type BoardItem, type StatusWrite } from "./api";
 
-/** Board state shared by every component. Fill it with `loadBoard`. */
-export const board: { items: BoardItem[]; error: string; selected: number | null } = $state({
+/** Board state shared by every component. Fill it with `loadBoard`. `busy` is true while a deletion is waiting on the Worker, so the sheet shows a spinner and stays open. */
+export const board: { items: BoardItem[]; error: string; selected: number | null; busy: boolean } = $state({
     items: [],
     error: "",
     selected: null,
+    busy: false,
 });
 
 /** Opens the detail sheet for a task, or closes it with `null`. */
@@ -79,8 +80,22 @@ export async function changeStatus(item: BoardItem, status: string): Promise<voi
     }
 }
 
+/** Sets a project's priority: the chip changes at once. If the Worker refuses, it goes back and the reason is put in `board.error`. */
+export async function changePriority(item: BoardItem, priority: string): Promise<void> {
+    const before = item.priority;
+    item.priority = priority;
+    try {
+        await postPriority(item.id, priority);
+        board.error = "";
+    } catch (e) {
+        item.priority = before;
+        board.error = e instanceof Error ? e.message : String(e);
+    }
+}
+
 /** Permanently deletes an inbox task: the Worker deletes the issue, then the task leaves the board and its sheet closes. A refusal is put in `board.error` and the task stays. */
 export async function removeTask(item: BoardItem): Promise<void> {
+    board.busy = true;
     try {
         await deleteTask(item.number);
         board.items = board.items.filter((i) => i.id !== item.id);
@@ -88,11 +103,14 @@ export async function removeTask(item: BoardItem): Promise<void> {
         board.error = "";
     } catch (e) {
         board.error = e instanceof Error ? e.message : String(e);
+    } finally {
+        board.busy = false;
     }
 }
 
 /** Closes a triaged task as not planned: the Worker closes the issue, then the task leaves the open lists and its sheet closes. A refusal is put in `board.error` and the task stays. */
 export async function dropTask(item: BoardItem): Promise<void> {
+    board.busy = true;
     try {
         await closeTaskNotPlanned(item.number);
         item.open = false;
@@ -101,6 +119,8 @@ export async function dropTask(item: BoardItem): Promise<void> {
         board.error = "";
     } catch (e) {
         board.error = e instanceof Error ? e.message : String(e);
+    } finally {
+        board.busy = false;
     }
 }
 

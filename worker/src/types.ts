@@ -26,6 +26,9 @@ export interface ItemDetail {
 	comments: { createdAt: string; bodyHtml: string }[];
 }
 
+/** Priorities a project may have, highest first. */
+export const PRIORITIES: string[] = ['!!!', '!!', '!', '-'];
+
 /** Statuses a project may have. */
 export const PROJECT_STATUSES: string[] = ['backlog', 'doing', 'waiting', 'done'];
 

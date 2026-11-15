@@ -2,6 +2,7 @@
     import { fetchDetail, type ItemDetail } from "../lib/api";
     import { board, dropTask, removeTask, select } from "../lib/board.svelte";
     import Icon from "./Icon.svelte";
+    import Spinner from "./Spinner.svelte";
     import StatusMenu from "./StatusMenu.svelte";
 
     /** Pop-up for the task in `board.selected`: a bottom sheet on a phone, a centred panel on desktop. Shows the status menu (not for an inbox task), the issue body and its comments, fetched when it opens. */
@@ -41,12 +42,13 @@
     tabindex="-1"
     bind:this={dialog}
     onclose={() => select(null)}
-    onclick={(e) => e.target === dialog && select(null)}
+    oncancel={(e) => board.busy && e.preventDefault()}
+    onclick={(e) => e.target === dialog && !board.busy && select(null)}
 >
     {#if item}
         <header>
             <h2>{item.title}</h2>
-            <button class="close" aria-label="close" onclick={() => select(null)}>×</button>
+            <button class="close" aria-label="close" disabled={board.busy} onclick={() => select(null)}>×</button>
         </header>
         <div class="controls">
             <!-- inbox tasks are triaged by an agent, so they have no controls here -->
@@ -56,7 +58,9 @@
             {#if item.due}<span class="chip"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
             <a class="issue" href={item.url} target="_blank" rel="noopener"><Icon name="link" size={1} />#{item.number}</a>
             <!-- an inbox task is deleted for good; a triaged one is closed as not planned -->
-            {#if confirming}
+            {#if board.busy}
+                <span class="confirm"><Spinner /></span>
+            {:else if confirming}
                 <span class="confirm">
                     are you sure?
                     <button class="yes" aria-label={item.status === "inbox" ? "delete task for good" : "close task as not planned"} onclick={() => (item.status === "inbox" ? removeTask(item) : dropTask(item))}><Icon name="check" size={1.1} /></button>

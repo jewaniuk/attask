@@ -1,5 +1,5 @@
-import { closeNotPlanned, createIssue, deleteIssue, fetchBoard, fetchDetail, writeStatuses } from './github';
-import { planStatus } from './rules';
+import { closeNotPlanned, createIssue, deleteIssue, fetchBoard, fetchDetail, writePriority, writeStatuses } from './github';
+import { planPriority, planStatus } from './rules';
 
 async function route(request: Request, env: Env): Promise<Response> {
 	const url = new URL(request.url);
@@ -25,6 +25,16 @@ async function route(request: Request, env: Env): Promise<Response> {
 		if (!plan.ok) return Response.json({ error: plan.reason }, { status: 409 });
 		await writeStatuses(env.GITHUB_TOKEN, plan.writes);
 		return Response.json({ writes: plan.writes });
+	}
+
+	const prio = url.pathname.match(/^\/items\/([\w-]+)\/priority$/);
+	if (request.method === 'POST' && prio) {
+		const body: any = await request.json();
+		const items = await fetchBoard(env.GITHUB_TOKEN);
+		const plan = planPriority(items, prio[1], String(body.priority));
+		if (!plan.ok) return Response.json({ error: plan.reason }, { status: 409 });
+		if (plan.write) await writePriority(env.GITHUB_TOKEN, plan.write);
+		return Response.json({ priority: plan.write?.priority ?? null });
 	}
 
 	if (request.method === 'POST' && url.pathname === '/tasks') {

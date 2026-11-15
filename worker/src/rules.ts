@@ -1,4 +1,4 @@
-import { PAUSED_STATUSES as PAUSED, allowedStatuses, type BoardItem } from './types';
+import { PAUSED_STATUSES as PAUSED, PRIORITIES, allowedStatuses, type BoardItem } from './types';
 
 /** One Status write the Worker must make on the board. */
 export interface StatusWrite {
@@ -11,6 +11,17 @@ export interface StatusWrite {
 
 /** What the Worker should do for a request, or why it refuses. */
 export type Plan = { ok: true; writes: StatusWrite[] } | { ok: false; reason: string };
+
+/** The Priority write the Worker must make on the board. */
+export interface PriorityWrite {
+	/** project item id */
+	id: string;
+	number: number;
+	priority: string;
+}
+
+/** What the Worker should do for a priority request: the write (null if nothing changes), or why it refuses. */
+export type PriorityPlan = { ok: true; write: PriorityWrite | null } | { ok: false; reason: string };
 
 function find(items: BoardItem[], id: string): BoardItem | undefined {
 	return items.find((i) => i.id === id);
@@ -46,4 +57,24 @@ export function planStatus(items: BoardItem[], id: string, status: string): Plan
 		}
 	}
 	return { ok: true, writes };
+}
+
+/**
+ * Plans a Priority change. Only projects have a priority.
+ *
+ * Args:
+ * 	items: The whole board.
+ * 	id: Project item id of the project to change.
+ * 	priority: The requested priority, one of `PRIORITIES`.
+ *
+ * Returns:
+ * 	The write to make, null if the project already has that priority; or a refusal with the reason.
+ */
+export function planPriority(items: BoardItem[], id: string, priority: string): PriorityPlan {
+	const item = find(items, id);
+	if (!item) return { ok: false, reason: 'no such item' };
+	if (!item.isProject) return { ok: false, reason: `#${item.number} is a task, only projects have a priority` };
+	if (!PRIORITIES.includes(priority)) return { ok: false, reason: `${priority} is not a priority` };
+	if (item.priority === priority) return { ok: true, write: null };
+	return { ok: true, write: { id: item.id, number: item.number, priority } };
 }

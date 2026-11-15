@@ -1,4 +1,4 @@
-import type { StatusWrite } from './rules';
+import type { PriorityWrite, StatusWrite } from './rules';
 import type { BoardItem, ItemDetail } from './types';
 
 const PROJECT_ID = 'PVT_kwHOA965uc4BrYgp';
@@ -11,6 +11,15 @@ const STATUS_OPTIONS: Record<string, string> = {
 	doing: '181b5ff2',
 	waiting: '4870a0fc',
 	done: '023ca80c',
+};
+
+const PRIORITY_FIELD_ID = 'PVTSSF_lAHOA965uc4BrYgpzhprh94';
+// Priority option ids, from the board's Priority field
+const PRIORITY_OPTIONS: Record<string, string> = {
+	'!!!': '9f6f36af',
+	'!!': '4cf72658',
+	'!': 'daa6d409',
+	'-': 'ae400c8f',
 };
 
 /** Runs one GraphQL request against GitHub and returns its `data`. Throws if GitHub reports errors. */
@@ -115,6 +124,24 @@ export async function writeStatuses(token: string, writes: StatusWrite[]): Promi
 		}) { clientMutationId }`,
 	);
 	await graphql(token, `mutation { ${mutations.join('\n')} }`, {});
+}
+
+/**
+ * Sets the Priority of one project item.
+ *
+ * Args:
+ * 	token: GitHub token.
+ * 	write: The change from `planPriority`.
+ */
+export async function writePriority(token: string, write: PriorityWrite): Promise<void> {
+	await graphql(
+		token,
+		`mutation { updateProjectV2ItemFieldValue(input: {
+			projectId: "${PROJECT_ID}", itemId: "${write.id}", fieldId: "${PRIORITY_FIELD_ID}",
+			value: { singleSelectOptionId: "${PRIORITY_OPTIONS[write.priority]}" }
+		}) { clientMutationId } }`,
+		{},
+	);
 }
 
 /**
