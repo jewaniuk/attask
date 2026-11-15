@@ -1,20 +1,23 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import Icon from "./components/Icon.svelte";
     import Sidebar from "./components/Sidebar.svelte";
+    import Category from "./pages/Category.svelte";
+    import Project from "./pages/Project.svelte";
     import Settings from "./pages/Settings.svelte";
     import { board, loadBoard } from "./lib/board.svelte";
     import { router } from "./lib/router.svelte";
 
     let drawerOpen = $state(false);
 
-    // placeholder titles until the pages arrive in checkpoint B
+    // inbox and next are placeholders until checkpoint C
     let title = $derived.by(() => {
         const route = router.route;
         switch (route.page) {
             case "category":
                 return route.name;
             case "project":
-                return `project ${route.number}`;
+                return board.items.find((i) => i.number === route.number && i.isProject)?.title ?? `project ${route.number}`;
             case "settings":
                 return "settings";
             case "next":
@@ -35,13 +38,17 @@
 
     <main>
         <div class="pagehead">
-            <button class="menu" aria-label="open menu" onclick={() => (drawerOpen = true)}>☰</button>
+            <button class="menu" aria-label="open menu" onclick={() => (drawerOpen = true)}><Icon name="menu" size={1.4} /></button>
             <h1>{title}</h1>
         </div>
         <div class="content">
             {#if board.error}<p class="error">{board.error}</p>{/if}
             {#if router.route.page === "settings"}
                 <Settings />
+            {:else if router.route.page === "category"}
+                <Category name={router.route.name} />
+            {:else if router.route.page === "project"}
+                <Project number={router.route.number} />
             {/if}
         </div>
     </main>
@@ -103,8 +110,7 @@
             background: none;
             border: 0;
             padding: 0.2rem 0.4rem;
-            font-size: 1.6em;
-            line-height: 1;
+            line-height: 0;
             color: var(--muted);
             cursor: pointer;
         }

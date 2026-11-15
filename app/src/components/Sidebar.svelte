@@ -1,5 +1,6 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
+    import Icon from "./Icon.svelte";
     import { board, categoryNames, openProjects } from "../lib/board.svelte";
     import {
         categoryHref,
@@ -16,8 +17,8 @@
 </script>
 
 <nav>
-    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox" onclick={onnavigate}>inbox</a>
-    <a class="row" class:current={router.route.page === "next"} href="#/next" onclick={onnavigate}>next</a>
+    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox" onclick={onnavigate}><Icon name="inbox" />inbox</a>
+    <a class="row" class:current={router.route.page === "next"} href="#/next" onclick={onnavigate}><Icon name="next" />next</a>
 
     <h4>categories</h4>
     {#each categories as name}
@@ -35,7 +36,7 @@
                 class:open={expanded[name]}
                 aria-label="show projects in {name}"
                 aria-expanded={expanded[name] ?? false}
-                onclick={() => (expanded[name] = !expanded[name])}>›</button
+                onclick={() => (expanded[name] = !expanded[name])}><Icon name="chevron" /></button
             >
         </div>
         {#if expanded[name]}
@@ -52,7 +53,7 @@
         {/if}
     {/each}
 
-    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings" onclick={onnavigate}>settings</a>
+    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings" onclick={onnavigate}><Icon name="settings" />settings</a>
 </nav>
 
 <style>
@@ -74,6 +75,7 @@
     .row {
         display: flex;
         align-items: center;
+        gap: 0.6rem;
         padding: 0.45em 0.6rem;
         border-radius: 6px;
         color: var(--text);
@@ -109,8 +111,7 @@
         background: none;
         border: 0;
         color: var(--faint);
-        font-size: 1.3em;
-        line-height: 1;
+        line-height: 0;
         padding: 0 0.3em;
         cursor: pointer;
         transition: transform 0.2s ease;

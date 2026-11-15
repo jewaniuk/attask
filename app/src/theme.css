@@ -30,7 +30,7 @@
     src: url("./assets/fonts/libron-700.woff2") format("woff2");
 }
 
-/* light is the default, dark follows the system setting */
+/* light is the default */
 :root {
     --bg: #fff7f3;
     --bg-alt: #fdeee8;
@@ -64,8 +64,9 @@
     color-scheme: light dark;
 }
 
+/* dark: the system setting, unless light is forced; or forced from Settings (data-theme on <html>) */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --bg: #120e16;
         --bg-alt: #0d0a10;
         --border: #2a2130;
@@ -91,6 +92,40 @@
             #4d8dff
         );
     }
+}
+
+:root[data-theme="dark"] {
+    --bg: #120e16;
+    --bg-alt: #0d0a10;
+    --border: #2a2130;
+    --border-hover: #3a2d42;
+    --hover: rgba(255, 255, 255, 0.04);
+    --active: #2a1d2c;
+    --text: #efe7ee;
+    --muted: #b3a5b6;
+    --faint: #7a6b7f;
+    --accent: #ff5e8a;
+    --accent-hover: #ff8fb0;
+    --link: #ffab70;
+    --h1: #ff5e8a;
+    --h2: #ff7a5c;
+    --h3: #ffb347;
+    --h4: #c58bff;
+    --sunset: linear-gradient(
+        90deg,
+        #ffb347,
+        #ff6a5c 30%,
+        #ff3d8b 55%,
+        #b45cff 80%,
+        #4d8dff
+    );
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
 }
 
 * {
