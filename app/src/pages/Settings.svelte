@@ -48,7 +48,7 @@
             {#each themes as choice}
                 <button class:on={theme.choice === choice} aria-pressed={theme.choice === choice} onclick={() => setTheme(choice)}>
                     <Icon name={themeIcons[choice]} />
-                    {choice === "system" ? "match system" : choice}
+                    {choice}
                 </button>
             {/each}
         </div>
@@ -160,9 +160,22 @@
         background: var(--card);
         box-shadow: var(--shadow-rest);
     }
-    .key button {
+    /* secondary buttons: soft field look like the inputs, not the browser default */
+    form button:not(.primary) {
         display: inline-flex;
         align-items: center;
+        padding: 0.5em 0.9em;
+        background: var(--bg-alt);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    form button:not(.primary):hover:not(:disabled) {
+        border-color: var(--border-hover);
+    }
+    form button:disabled {
+        opacity: 0.6;
+        cursor: default;
     }
     .about {
         display: flex;
