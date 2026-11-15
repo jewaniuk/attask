@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import Icon from "./components/Icon.svelte";
     import StatusMenu from "./components/StatusMenu.svelte";
     import DetailSheet from "./components/DetailSheet.svelte";
     import BottomBar from "./components/BottomBar.svelte";
@@ -10,6 +9,7 @@
     import Next from "./pages/Next.svelte";
     import Project from "./pages/Project.svelte";
     import Settings from "./pages/Settings.svelte";
+    import { tick } from "./lib/haptics";
     import { board, loadBoard } from "./lib/board.svelte";
     import { router } from "./lib/router.svelte";
 
@@ -55,10 +55,15 @@
     let pull = $state(0);
     let refreshing = $state(false);
     let start: { x: number; y: number } | null = null;
+    // the page glides back after a pull but follows the finger during one
+    let dragging = $state(false);
     const pullNeeded = 60;
 
     function touchStart(e: TouchEvent): void {
-        if (main.scrollTop <= 0 && !refreshing) start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        if (main.scrollTop <= 0 && !refreshing) {
+            start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            dragging = true;
+        }
     }
 
     function touchMove(e: TouchEvent): void {
@@ -66,13 +71,18 @@
         const dx = e.touches[0].clientX - start.x;
         const dy = e.touches[0].clientY - start.y;
         // a sideways swipe on a board is not a pull
-        pull = dy > 0 && dy > Math.abs(dx) ? Math.min(dy * 0.5, 80) : 0;
+        const next = dy > 0 && dy > Math.abs(dx) ? Math.min(dy * 0.5, 80) : 0;
+        // a tick on Android as the pull passes the line; iPhone only allows one at release
+        if (pull < pullNeeded && next >= pullNeeded && "vibrate" in navigator) tick();
+        pull = next;
     }
 
     async function touchEnd(): Promise<void> {
         if (!start) return;
         start = null;
+        dragging = false;
         if (pull >= pullNeeded) {
+            tick();
             refreshing = true;
             pull = pullNeeded;
             await loadBoard();
@@ -105,7 +115,7 @@
         ></div>
     </aside>
 
-    <main bind:this={main} ontouchstart={touchStart} ontouchmove={touchMove} ontouchend={touchEnd} ontouchcancel={touchEnd}>
+    <main bind:this={main} class:dragging style="transform: translateY({pull * 0.75}px)" ontouchstart={touchStart} ontouchmove={touchMove} ontouchend={touchEnd} ontouchcancel={touchEnd}>
         <div class="pagehead">
             <h1>{title}</h1>
             {#if headProject}<StatusMenu item={headProject} />{/if}
@@ -130,12 +140,12 @@
     </main>
 </div>
 
-{#if pull > 0}
-    <!-- round badge that drops from the top edge, turning as you pull and spinning while it loads -->
-    <div class="pull" style="transform: translateY({pull}px); opacity: {Math.min(1, pull / pullNeeded)}">
-        <span class:spin={refreshing} style="transform: rotate({pull * 4}deg)"><Icon name="refresh" size={1.2} /></span>
-    </div>
-{/if}
+<!-- sunset bar under the status bar: grows from the middle as you pull, pulses while the board loads -->
+<div
+    class="pullbar"
+    class:loading={refreshing}
+    style="transform: scaleX({refreshing ? 1 : Math.min(1, pull / pullNeeded)}); opacity: {refreshing ? '' : Math.min(1, pull / 20)}"
+></div>
 
 <div class="bottombar"><BottomBar /></div>
 <DetailSheet />
@@ -201,33 +211,36 @@
         color: var(--accent);
     }
 
-    /* starts hidden above the screen and travels down with the pull, under the status bar */
-    .pull {
+    /* the page follows the finger during a pull and glides back after */
+    main {
+        transition: transform 0.25s ease;
+    }
+    main.dragging {
+        transition: none;
+    }
+    .pullbar {
         position: fixed;
-        top: calc(env(safe-area-inset-top, 0px) - 2.4rem);
-        left: 50%;
-        margin-left: -1.1rem;
+        top: env(safe-area-inset-top, 0px);
+        left: 0;
+        right: 0;
         z-index: 20;
-        display: grid;
-        place-items: center;
-        width: 2.2rem;
-        height: 2.2rem;
-        border-radius: 50%;
-        background: var(--card);
-        color: var(--accent);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-hover);
+        height: 3px;
+        background: var(--sunset);
+        transform-origin: 50% 50%;
+        transform: scaleX(0);
+        opacity: 0;
         pointer-events: none;
     }
-    .pull span {
-        display: grid;
+    .pullbar.loading {
+        animation: pulse 0.9s ease-in-out infinite;
     }
-    .pull .spin {
-        animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 0.45;
+        }
+        50% {
+            opacity: 1;
         }
     }
 

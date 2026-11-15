@@ -1,5 +1,6 @@
 <script lang="ts">
     import { board, categoryNames } from "../lib/board.svelte";
+    import { tick } from "../lib/haptics";
     import { categoryHref, router } from "../lib/router.svelte";
     import Icon, { categoryIcon, type IconName } from "./Icon.svelte";
 
@@ -25,7 +26,7 @@
 
 <nav>
     {#each links as link (link.id)}
-        <a href={link.href} class:current={current === link.id} aria-label={link.id}>
+        <a href={link.href} class:current={current === link.id} aria-label={link.id} onclick={() => current !== link.id && tick()}>
             <Icon name={link.icon} size={1.4} />
             <span class="label" aria-hidden="true"><span>{link.id}</span></span>
         </a>
