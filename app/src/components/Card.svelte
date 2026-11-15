@@ -10,7 +10,8 @@
     // priority chip colour, one of --pr-1 (!!!) to --pr-4 (-)
     let priorityLevel = $derived(({ "!!!": 1, "!!": 2, "!": 3 } as Record<string, number>)[item.priority ?? ""] ?? 4);
 
-    let project = $derived(board.items.find((i) => i.isProject && i.number === item.parent));
+    // title of the task's project, only looked up when asked for
+    let projectTitle = $derived(showProject ? board.items.find((i) => i.isProject && i.number === item.parent)?.title : undefined);
     let taskCount = $derived(item.isProject ? tasksOf(board.items, item.number).length : 0);
 </script>
 
@@ -30,7 +31,7 @@
             {#if item.priority}<span class="chip priority" style="--pr: var(--pr-{priorityLevel})">{item.priority}</span>{/if}
             <span class="chip">{taskCount} open</span>
         {:else}
-            {#if showProject && project}<span class="chip">{project.title}</span>{/if}
+            {#if projectTitle}<span class="chip">{projectTitle}</span>{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip due"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
