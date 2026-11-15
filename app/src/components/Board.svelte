@@ -8,14 +8,23 @@
      * Args:
      *   statuses: column names, left to right.
      *   items: the cards; each goes in the column matching its status.
+     *   start: the column to show first on a phone (centred); changing it moves there again.
      */
-    let { statuses, items }: { statuses: string[]; items: BoardItem[] } = $props();
+    let { statuses, items, start }: { statuses: string[]; items: BoardItem[]; start: string } = $props();
+
+    let board: HTMLDivElement;
+
+    // on a phone the board scrolls sideways, so centre the starting column; does nothing on desktop where nothing scrolls
+    $effect(() => {
+        const column = board.querySelector<HTMLElement>(`[data-status="${start}"]`);
+        if (column) board.scrollLeft = column.offsetLeft - (board.clientWidth - column.offsetWidth) / 2;
+    });
 </script>
 
-<div class="board">
+<div class="board" bind:this={board}>
     {#each statuses as status}
         {@const cards = items.filter((i) => i.status === status)}
-        <section style="--st: var(--st-{status})">
+        <section data-status={status} style="--st: var(--st-{status})">
             <h3>{status}</h3>
             <div class="cards">
                 {#each cards as item (item.id)}
@@ -28,6 +37,7 @@
 
 <style>
     .board {
+        position: relative;
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: minmax(240px, 1fr);
@@ -35,7 +45,8 @@
         align-items: start;
     }
     section {
-        background: color-mix(in srgb, var(--st) 13%, var(--bg-alt));
+        background: color-mix(in srgb, var(--st) var(--st-tint), var(--bg-alt));
+        border: 1px solid color-mix(in srgb, var(--st) 22%, transparent);
         border-radius: 12px;
         padding: 0.8rem;
         min-width: 0;
@@ -74,8 +85,6 @@
         }
         section {
             scroll-snap-align: center;
-            /* one swipe moves one column, however hard the flick */
-            scroll-snap-stop: always;
         }
     }
 </style>

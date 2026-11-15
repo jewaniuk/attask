@@ -8,13 +8,15 @@
     let { number }: { number: number } = $props();
 
     let project = $derived(board.items.find((i) => i.number === number && i.isProject));
+    // phone starts on the column matching the project's own status: backlog, waiting, else doing
+    let start = $derived(project?.status === "backlog" || project?.status === "waiting" ? project.status : "doing");
 </script>
 
 {#if project?.category}
     <a class="back" href={categoryHref(project.category)}><Icon name="chevron" size={0.9} />{project.category}</a>
 {/if}
 {#if project}
-    <Board statuses={["backlog", "next", "doing", "waiting"]} items={tasksOf(board.items, number)} />
+    <Board statuses={["backlog", "next", "doing", "waiting"]} items={tasksOf(board.items, number)} {start} />
 {:else if board.items.length > 0}
     <p>no project #{number} on the board</p>
 {/if}
