@@ -162,7 +162,7 @@
         }
         /* keep clear of the status bar in the installed app */
         .pagehead {
-            padding: calc(env(safe-area-inset-top, 0px) + 0.7rem) 1.5rem 0.5rem;
+            padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.5rem 0.5rem;
         }
         .pagehead h1 {
             font-size: 1.6em;

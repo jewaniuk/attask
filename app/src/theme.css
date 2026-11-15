@@ -256,7 +256,7 @@ button.primary:hover {
     background: var(--accent-hover);
 }
 
-/* sunset gradient bar along the bottom of the window */
+/* sunset gradient bar along the bottom of the window; on a phone the bottom bar carries the gradient instead */
 body::after {
     content: "";
     position: fixed;
@@ -267,4 +267,10 @@ body::after {
     background: var(--sunset);
     pointer-events: none;
     z-index: 100;
+}
+
+@media (max-width: 768px) {
+    body::after {
+        display: none;
+    }
 }
