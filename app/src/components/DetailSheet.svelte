@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fetchDetail, type ItemDetail } from "../lib/api";
-    import { board, select } from "../lib/board.svelte";
+    import { board, removeTask, select } from "../lib/board.svelte";
     import Icon from "./Icon.svelte";
     import StatusMenu from "./StatusMenu.svelte";
 
@@ -10,6 +10,8 @@
     let item = $derived(board.items.find((i) => i.number === board.selected && !i.isProject));
     let detail = $state<ItemDetail | null>(null);
     let failed = $state("");
+    /** Whether the delete button has been tapped once and now asks to confirm. */
+    let confirming = $state(false);
 
     $effect(() => {
         const number = board.selected;
@@ -23,6 +25,7 @@
         }
         detail = null;
         failed = "";
+        confirming = false;
         // ignore an answer that arrives after another task was opened
         fetchDetail(number)
             .then((d) => board.selected === number && (detail = d))
@@ -52,6 +55,17 @@
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
             <a class="issue" href={item.url} target="_blank" rel="noopener"><Icon name="link" size={1} />#{item.number}</a>
+            {#if item.status === "inbox"}
+                {#if confirming}
+                    <span class="confirm">
+                        delete for good?
+                        <button class="danger" onclick={() => removeTask(item)}>delete</button>
+                        <button onclick={() => (confirming = false)}>keep</button>
+                    </span>
+                {:else}
+                    <button class="trash" aria-label="delete task" onclick={() => (confirming = true)}><Icon name="trash" size={1.1} /></button>
+                {/if}
+            {/if}
         </div>
         {#if board.error}<p class="error">{board.error}</p>{/if}
 
@@ -74,6 +88,32 @@
 </dialog>
 
 <style>
+    .trash,
+    .confirm button {
+        font: inherit;
+        color: var(--text);
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.2em 0.7em;
+    }
+    .trash {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.3em 0.5em;
+        margin-left: auto;
+    }
+    .confirm {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-left: auto;
+    }
+    .confirm .danger {
+        color: #fff;
+        background: #c0392b;
+        border-color: #c0392b;
+    }
     dialog {
         width: min(36rem, 100% - 2rem);
         max-height: 80dvh;

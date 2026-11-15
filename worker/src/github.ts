@@ -158,3 +158,15 @@ export async function createIssue(token: string, title: string): Promise<{ numbe
 	const issue: any = await res.json();
 	return { number: issue.number, url: issue.html_url };
 }
+
+/**
+ * Permanently deletes an issue from `jewaniuk/tasks`, with its comments. Unlike closing, this cannot be undone, and the board item goes with it.
+ *
+ * Args:
+ * 	token: GitHub token, which must have admin rights on the repo.
+ * 	number: Issue number.
+ */
+export async function deleteIssue(token: string, number: number): Promise<void> {
+	const found = await graphql(token, 'query($n: Int!) { repository(owner: "jewaniuk", name: "tasks") { issue(number: $n) { id } } }', { n: number });
+	await graphql(token, 'mutation($id: ID!) { deleteIssue(input: { issueId: $id }) { clientMutationId } }', { id: found.repository.issue.id });
+}

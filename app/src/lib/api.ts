@@ -30,14 +30,14 @@ export function workerBase(url: string): string {
 }
 
 /** Calls the Worker with the saved settings and returns the parsed JSON. Throws an error saying what is wrong if the settings are empty, the Worker is unreachable, or it refuses or answers badly. */
-async function request<T>(path: string, body?: object): Promise<T> {
+async function request<T>(path: string, body?: object, method: string = body ? "POST" : "GET"): Promise<T> {
   const { url, key } = loadSettings();
   if (!url.trim() || !key) throw new Error("enter the worker url and app key in Settings");
   const base = workerBase(url);
   let res: Response;
   try {
     res = await fetch(`${base}${path}`, {
-      method: body ? "POST" : "GET",
+      method,
       headers: { Authorization: `Bearer ${key}` },
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -48,7 +48,7 @@ async function request<T>(path: string, body?: object): Promise<T> {
   // 409 is a board rule saying no, with its reason
   if (res.status === 409) throw new Error(((await res.json()) as { error: string }).error);
   if (!res.ok) throw new Error(`worker returned ${res.status}`);
-  return res.json();
+  return res.status === 204 ? (undefined as T) : res.json();
 }
 
 /** One Status the Worker changed, which may include tasks paused along with a project. */
@@ -76,4 +76,9 @@ export async function postStatus(id: string, status: string): Promise<StatusWrit
 /** Asks the Worker to create a task with this title. It lands in the inbox on the board a few seconds later. Returns the new issue's number and address. */
 export function postTask(title: string): Promise<{ number: number; url: string }> {
   return request("/tasks", { title });
+}
+
+/** Asks the Worker to permanently delete an inbox task's issue. Throws the Worker's reason if it refuses. */
+export function deleteTask(number: number): Promise<void> {
+  return request(`/issues/${number}`, undefined, "DELETE");
 }

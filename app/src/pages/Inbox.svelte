@@ -14,6 +14,8 @@
     );
 
     let title = $state("");
+    /** Whether the title box is showing. */
+    let open = $state(false);
     let adding = $state(false);
     /** Tasks just created that the board does not list yet: GitHub adds a new issue to the board a few seconds after creating it. */
     let pending: { number: number; title: string }[] = $state([]);
@@ -29,6 +31,7 @@
             pending.push({ number, title: text });
             title = "";
             board.error = "";
+            adding = false;
             for (let i = 0; i < 6 && !board.items.some((t) => t.number === number); i++) {
                 await new Promise((r) => setTimeout(r, 2500));
                 await loadBoard();
@@ -36,8 +39,13 @@
             pending = pending.filter((p) => p.number !== number);
         } catch (err) {
             board.error = err instanceof Error ? err.message : String(err);
+            adding = false;
         }
-        adding = false;
+    }
+
+    // puts the cursor in the title box when it opens
+    function focus(node: HTMLInputElement): void {
+        node.focus();
     }
 </script>
 
@@ -53,16 +61,21 @@
     {/each}
 </div>
 
-<form class="add" onsubmit={add}>
-    <input bind:value={title} placeholder="add a task" aria-label="new task title" enterkeyhint="send" />
-    <button disabled={adding || !title.trim()}>add</button>
-</form>
-
-{#if tasks.length > 0}
-    <a class="triage" href="https://claude.ai/new?q={encodeURIComponent(prompt)}" target="_blank" rel="noopener">
-        <Icon name="claude" size={1.3} />triage inbox
-    </a>
+{#if open}
+    <form class="add" onsubmit={add}>
+        <input use:focus bind:value={title} placeholder="add a task" aria-label="new task title" enterkeyhint="send" />
+        <button disabled={adding || !title.trim()}>add</button>
+    </form>
 {/if}
+
+<div class="actions">
+    <button class="pill" onclick={() => (open = !open)} aria-expanded={open}><Icon name="plus" size={1.3} />add task</button>
+    {#if tasks.length > 0}
+        <a class="pill" href="https://claude.ai/new?q={encodeURIComponent(prompt)}" target="_blank" rel="noopener">
+            <Icon name="claude" size={1.3} />triage inbox
+        </a>
+    {/if}
+</div>
 </div>
 
 <style>
@@ -114,25 +127,23 @@
     .add button:disabled {
         opacity: 0.5;
     }
-    /* on desktop the box sits above the list, on a phone below it next to the triage button */
-    @media (min-width: 769px) {
-        .add {
-            order: -1;
-            margin: 0 0 1rem;
-        }
-    }
     .empty {
         color: var(--muted);
     }
-    /* the icon is Claude's orange */
-    .triage {
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1.2rem;
+    }
+    .pill {
         display: inline-flex;
         align-items: center;
         gap: 0.5em;
-        margin-top: 1.2rem;
         padding: 0.55em 1.2em;
-        color: var(--text);
+        font: inherit;
         font-weight: 500;
+        color: var(--text);
         text-decoration: none;
         background: var(--card);
         border: 1px solid var(--border);
@@ -140,11 +151,12 @@
         box-shadow: var(--shadow-rest);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .triage :global(svg) {
+    /* the triage icon is Claude's orange */
+    a.pill :global(svg) {
         color: #d97757;
     }
     @media (hover: hover) {
-        .triage:hover {
+        .pill:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-hover);
         }
