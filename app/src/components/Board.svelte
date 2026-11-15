@@ -26,6 +26,7 @@
     function onDragOver(e: DragEvent, status: string): void {
         if (!accepts(status)) return;
         e.preventDefault(); // without this the browser refuses the drop
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
         over = status;
     }
 
