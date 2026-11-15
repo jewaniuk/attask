@@ -137,3 +137,52 @@ export async function fetchDetail(token: string, number: number): Promise<ItemDe
 	const issue = (await graphql(token, query, { n: number })).repository.issue;
 	return { bodyHtml: issue.bodyHTML, comments: issue.comments.nodes.map((c: any) => ({ createdAt: c.createdAt, bodyHtml: c.bodyHTML })) };
 }
+
+/**
+ * Creates an issue in `jewaniuk/tasks`. A GitHub rule adds it to the board as `inbox` a few seconds later, so the status is not set here.
+ *
+ * Args:
+ * 	token: GitHub token.
+ * 	title: Issue title.
+ *
+ * Returns:
+ * 	The new issue's number and address.
+ */
+export async function createIssue(token: string, title: string): Promise<{ number: number; url: string }> {
+	const res = await fetch('https://api.github.com/repos/jewaniuk/tasks/issues', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'attask-worker' },
+		body: JSON.stringify({ title }),
+	});
+	if (!res.ok) throw new Error(`github returned ${res.status}`);
+	const issue: any = await res.json();
+	return { number: issue.number, url: issue.html_url };
+}
+
+/**
+ * Permanently deletes an issue from `jewaniuk/tasks`, with its comments. Unlike closing, this cannot be undone, and the board item goes with it.
+ *
+ * Args:
+ * 	token: GitHub token, which must have admin rights on the repo.
+ * 	number: Issue number.
+ */
+export async function deleteIssue(token: string, number: number): Promise<void> {
+	const found = await graphql(token, 'query($n: Int!) { repository(owner: "jewaniuk", name: "tasks") { issue(number: $n) { id } } }', { n: number });
+	await graphql(token, 'mutation($id: ID!) { deleteIssue(input: { issueId: $id }) { clientMutationId } }', { id: found.repository.issue.id });
+}
+
+/**
+ * Closes an issue in `jewaniuk/tasks` as "not planned". The board's own rule then sets its Status to `done`, so it drops off the open lists.
+ *
+ * Args:
+ * 	token: GitHub token.
+ * 	number: Issue number.
+ */
+export async function closeNotPlanned(token: string, number: number): Promise<void> {
+	const res = await fetch(`https://api.github.com/repos/jewaniuk/tasks/issues/${number}`, {
+		method: 'PATCH',
+		headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'attask-worker' },
+		body: JSON.stringify({ state: 'closed', state_reason: 'not_planned' }),
+	});
+	if (!res.ok) throw new Error(`github returned ${res.status}`);
+}

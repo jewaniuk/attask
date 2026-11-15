@@ -1,4 +1,4 @@
-import { fetchBoard, fetchDetail, writeStatuses } from './github';
+import { closeNotPlanned, createIssue, deleteIssue, fetchBoard, fetchDetail, writeStatuses } from './github';
 import { planStatus } from './rules';
 
 async function route(request: Request, env: Env): Promise<Response> {
@@ -27,6 +27,37 @@ async function route(request: Request, env: Env): Promise<Response> {
 		return Response.json({ writes: plan.writes });
 	}
 
+	if (request.method === 'POST' && url.pathname === '/tasks') {
+		const body: any = await request.json();
+		const title = typeof body.title === 'string' ? body.title.trim() : '';
+		if (!title) return Response.json({ error: 'title is empty' }, { status: 400 });
+		return Response.json(await createIssue(env.GITHUB_TOKEN, title));
+	}
+
+	const drop = url.pathname.match(/^\/issues\/(\d+)\/not-planned$/);
+	if (request.method === 'POST' && drop) {
+		// a triaged, open task only: inbox tasks are deleted instead, projects are never dropped from here
+		const number = Number(drop[1]);
+		const item = (await fetchBoard(env.GITHUB_TOKEN)).find((i) => i.number === number);
+		if (!item || !item.open || item.status === 'inbox' || item.isProject) {
+			return Response.json({ error: 'only open, triaged tasks can be closed as not planned' }, { status: 409 });
+		}
+		await closeNotPlanned(env.GITHUB_TOKEN, number);
+		return new Response(null, { status: 204 });
+	}
+
+	const remove = url.pathname.match(/^\/issues\/(\d+)$/);
+	if (request.method === 'DELETE' && remove) {
+		// only inbox tasks: a task already triaged, or a project, is never deleted from here
+		const number = Number(remove[1]);
+		const item = (await fetchBoard(env.GITHUB_TOKEN)).find((i) => i.number === number);
+		if (!item || item.status !== 'inbox' || item.isProject) {
+			return Response.json({ error: 'only inbox tasks can be deleted' }, { status: 409 });
+		}
+		await deleteIssue(env.GITHUB_TOKEN, number);
+		return new Response(null, { status: 204 });
+	}
+
 	return new Response('not found', { status: 404 });
 }
 
@@ -42,7 +73,7 @@ export default {
 		if (allowed) {
 			out.headers.set('Access-Control-Allow-Origin', origin);
 			out.headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-			out.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+			out.headers.set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
 		}
 		return out;
 	},

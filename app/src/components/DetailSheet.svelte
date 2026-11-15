@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fetchDetail, type ItemDetail } from "../lib/api";
-    import { board, select } from "../lib/board.svelte";
+    import { board, dropTask, removeTask, select } from "../lib/board.svelte";
     import Icon from "./Icon.svelte";
     import StatusMenu from "./StatusMenu.svelte";
 
@@ -10,6 +10,8 @@
     let item = $derived(board.items.find((i) => i.number === board.selected && !i.isProject));
     let detail = $state<ItemDetail | null>(null);
     let failed = $state("");
+    /** Whether the delete button has been tapped once and now asks to confirm. */
+    let confirming = $state(false);
 
     $effect(() => {
         const number = board.selected;
@@ -23,6 +25,7 @@
         }
         detail = null;
         failed = "";
+        confirming = false;
         // ignore an answer that arrives after another task was opened
         fetchDetail(number)
             .then((d) => board.selected === number && (detail = d))
@@ -52,6 +55,16 @@
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
             <a class="issue" href={item.url} target="_blank" rel="noopener"><Icon name="link" size={1} />#{item.number}</a>
+            <!-- an inbox task is deleted for good; a triaged one is closed as not planned -->
+            {#if confirming}
+                <span class="confirm">
+                    are you sure?
+                    <button class="yes" aria-label={item.status === "inbox" ? "delete task for good" : "close task as not planned"} onclick={() => (item.status === "inbox" ? removeTask(item) : dropTask(item))}><Icon name="check" size={1.1} /></button>
+                    <button aria-label="keep task" onclick={() => (confirming = false)}><Icon name="close" size={1.1} /></button>
+                </span>
+            {:else}
+                <button class="trash" aria-label={item.status === "inbox" ? "delete task" : "close task as not planned"} onclick={() => (confirming = true)}><Icon name="trash" size={1.1} /></button>
+            {/if}
         </div>
         {#if board.error}<p class="error">{board.error}</p>{/if}
 
@@ -74,6 +87,31 @@
 </dialog>
 
 <style>
+    /* the link stays left and the delete controls take the right edge; the confirm text then grows leftwards without moving the link */
+    .trash,
+    .confirm {
+        margin-left: auto;
+    }
+    .trash,
+    .confirm button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.3em;
+        color: var(--muted);
+        background: none;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+    .confirm {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        color: var(--muted);
+    }
+    .confirm .yes {
+        color: #c0392b;
+    }
     dialog {
         width: min(36rem, 100% - 2rem);
         max-height: 80dvh;
@@ -143,7 +181,6 @@
         display: inline-flex;
         align-items: center;
         gap: 0.25em;
-        margin-left: auto;
         color: var(--muted);
         text-decoration: none;
     }
