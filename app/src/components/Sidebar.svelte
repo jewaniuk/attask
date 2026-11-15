@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { slide } from "svelte/transition";
     import { board, categoryNames, openProjects } from "../lib/board.svelte";
     import {
         categoryHref,
@@ -20,10 +21,12 @@
 
     <h4>Categories</h4>
     {#each categories as name}
-        <div class="row">
+        <div
+            class="row"
+            class:current={router.route.page === "category" && router.route.name === name}
+        >
             <a
                 class="grow"
-                class:current={router.route.page === "category" && router.route.name === name}
                 href={categoryHref(name)}
                 onclick={onnavigate}>{name}</a
             >
@@ -36,6 +39,7 @@
             >
         </div>
         {#if expanded[name]}
+            <div class="projects" transition:slide={{ duration: 200 }}>
             {#each projects.filter((p) => p.category === name) as project}
                 <a
                     class="row sub"
@@ -44,6 +48,7 @@
                     onclick={onnavigate}>{project.title}</a
                 >
             {/each}
+            </div>
         {/if}
     {/each}
 
@@ -73,6 +78,7 @@
         border-radius: 6px;
         color: var(--text);
         text-decoration: none;
+        transition: background 0.15s ease, color 0.15s ease;
     }
     .row:hover {
         background: var(--hover);
@@ -87,6 +93,11 @@
         color: var(--accent);
         font-weight: 600;
     }
+    .projects {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
     .sub {
         margin-left: 1.2rem;
         color: var(--muted);
@@ -100,7 +111,7 @@
         line-height: 1;
         padding: 0 0.3em;
         cursor: pointer;
-        transition: transform 0.15s;
+        transition: transform 0.2s ease;
     }
     .chevron.open {
         transform: rotate(90deg);

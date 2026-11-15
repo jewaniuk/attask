@@ -33,9 +33,7 @@
         <span>{title}</span>
     </header>
 
-    {#if drawerOpen}
-        <button class="backdrop" aria-label="close menu" onclick={() => (drawerOpen = false)}></button>
-    {/if}
+    <button class="backdrop" class:open={drawerOpen} aria-label="close menu" tabindex={drawerOpen ? 0 : -1} onclick={() => (drawerOpen = false)}></button>
     <aside class:open={drawerOpen}>
         <Sidebar onnavigate={() => (drawerOpen = false)} />
     </aside>
@@ -55,6 +53,7 @@
     .layout {
         display: grid;
         grid-template-columns: 260px 1fr;
+        grid-template-rows: minmax(0, 1fr);
         height: 100dvh;
     }
     aside {
@@ -63,7 +62,7 @@
         overflow: hidden;
     }
     main {
-        padding: 1.5rem 2rem;
+        padding: 1.5rem 3rem;
         overflow: auto;
     }
     header,
@@ -78,7 +77,7 @@
     @media (max-width: 768px) {
         .layout {
             grid-template-columns: 1fr;
-            grid-template-rows: auto 1fr;
+            grid-template-rows: auto minmax(0, 1fr);
         }
         header {
             display: flex;
@@ -100,7 +99,7 @@
             inset: 0 auto 0 0;
             width: min(280px, 85vw);
             transform: translateX(-100%);
-            transition: transform 0.2s;
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
             z-index: 20;
         }
         aside.open {
@@ -113,9 +112,16 @@
             border: 0;
             background: rgba(0, 0, 0, 0.45);
             z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
         }
         main {
-            padding: 1rem;
+            padding: 1rem 1.5rem;
         }
     }
 </style>
