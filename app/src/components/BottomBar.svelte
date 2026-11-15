@@ -41,7 +41,7 @@
         z-index: 30;
         display: flex;
         justify-content: space-between;
-        padding: 0.35rem;
+        padding: 5px;
         border-radius: 999px;
         background: color-mix(in srgb, var(--card) 78%, transparent);
         -webkit-backdrop-filter: blur(16px) saturate(1.5);
@@ -63,36 +63,39 @@
         mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         mask-composite: exclude;
     }
+    /* every slot shares the width equally and the current one grows, so the total never changes and the other icons only slide smoothly */
     a {
         display: flex;
+        flex: 1 1 0;
+        min-width: 0;
         align-items: center;
-        padding: 0.55rem 0.7rem;
+        justify-content: center;
+        height: 38px;
         border-radius: 999px;
         color: var(--muted);
         text-decoration: none;
-        transition: background 0.35s ease, color 0.35s ease;
+        transition: flex-grow 0.4s cubic-bezier(0.32, 0.72, 0, 1), background 0.35s ease, color 0.35s ease;
     }
     .current {
+        flex-grow: 2.4;
         background: var(--active);
         color: var(--accent);
         font-weight: 600;
     }
-    /* the name grows from zero width, so the pill glides instead of jumping */
     .label {
-        display: grid;
-        grid-template-columns: 0fr;
+        max-width: 0;
+        overflow: hidden;
         opacity: 0;
-        transition: grid-template-columns 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+        font-size: 0.85em;
+        white-space: nowrap;
+        transition: max-width 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
     }
     .current .label {
-        grid-template-columns: 1fr;
+        max-width: 4.2rem;
         opacity: 1;
     }
     .label span {
-        min-width: 0;
-        overflow: hidden;
+        display: inline-block;
         padding-left: 0.35rem;
-        font-size: 0.85em;
-        white-space: nowrap;
     }
 </style>
