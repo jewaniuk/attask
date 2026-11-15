@@ -4,13 +4,15 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "worker",
+	"name": "attask-worker",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-11-13",
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	// plain config, safe to commit; GITHUB_TOKEN and APP_KEY are secrets set with `wrangler secret put`
+	"vars": { "ALLOWED_ORIGINS": "https://jewaniuk.github.io" }
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

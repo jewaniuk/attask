@@ -5,4 +5,4 @@ A mobile-first web app for viewing and editing a personal task board kept in a G
 - `app/` the web app
 - `worker/` the Worker (GitHub GraphQL access, auth, CORS, board rules)
 
-See `CLAUDE.md` for how to run, test and contribute.
+`docs/deploy.md` has the one-time Cloudflare and GitHub Pages setup. See `CLAUDE.md` for how to run, test and contribute.
