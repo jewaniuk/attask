@@ -27,7 +27,9 @@
     });
 </script>
 
+<!-- autofocus keeps the browser from focusing the close button when the sheet opens -->
 <dialog
+    autofocus
     bind:this={dialog}
     onclose={() => select(null)}
     onclick={(e) => e.target === dialog && select(null)}
@@ -67,7 +69,7 @@
             {#if failed}
                 <p class="error">{failed}</p>
             {:else if !detail}
-                <p class="faint">loading</p>
+                <p class="faint">loading ...</p>
             {:else}
                 <!-- html rendered and sanitized by GitHub, from this repo's own issues -->
                 {#if detail.bodyHtml}{@html detail.bodyHtml}{:else}<p class="faint">no description</p>{/if}
@@ -93,8 +95,13 @@
         box-shadow: var(--shadow-hover);
         overflow: auto;
     }
+    dialog:focus {
+        outline: none;
+    }
+    /* reaches past the screen edges so the dim also covers the status bar area on a phone */
     dialog::backdrop {
         background: rgba(0, 0, 0, 0.45);
+        inset: -200px;
     }
     header {
         display: flex;

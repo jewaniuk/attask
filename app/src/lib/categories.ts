@@ -1,7 +1,7 @@
 /** One-line summaries shown under a category page's title. */
 const summaries: Record<string, string> = {
     degree: "thesis research, coursework and lab duties",
-    personal: "technical projects that are entirely my own, outside work",
+    personal: "technical projects that are my own, outside work",
     "start-up": "building polar quantum technologies",
 };
 
