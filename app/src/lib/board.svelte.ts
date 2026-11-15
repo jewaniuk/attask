@@ -26,3 +26,24 @@ export function categoryNames(items: BoardItem[]): string[] {
     const names = openProjects(items).map((p) => p.category);
     return [...new Set(names.filter((n): n is string => n !== null))].sort();
 }
+
+/** Open projects in one category, highest priority first, then board number. */
+export function projectsIn(items: BoardItem[], category: string): BoardItem[] {
+    return openProjects(items)
+        .filter((p) => p.category === category)
+        .sort((a, b) => rank(a.priority) - rank(b.priority) || a.number - b.number);
+}
+
+/** Open tasks of one project, in issue order. */
+export function tasksOf(items: BoardItem[], project: number): BoardItem[] {
+    return items
+        .filter((i) => i.open && !i.isProject && i.parent === project)
+        .sort((a, b) => a.number - b.number);
+}
+
+// position of a priority value, highest first; items without one go last
+function rank(priority: string | null): number {
+    const order = ["!!!", "!!", "!", "-"];
+    const at = priority === null ? -1 : order.indexOf(priority);
+    return at === -1 ? order.length : at;
+}

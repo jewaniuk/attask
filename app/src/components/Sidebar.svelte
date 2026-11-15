@@ -1,5 +1,6 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
+    import Icon, { categoryIcon } from "./Icon.svelte";
     import { board, categoryNames, openProjects } from "../lib/board.svelte";
     import {
         categoryHref,
@@ -7,17 +8,14 @@
         router,
     } from "../lib/router.svelte";
 
-    /** Called after any link is tapped, so the mobile drawer can close. */
-    let { onnavigate }: { onnavigate: () => void } = $props();
-
     let categories = $derived(categoryNames(board.items));
     let projects = $derived(openProjects(board.items));
     let expanded: Record<string, boolean> = $state({});
 </script>
 
 <nav>
-    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox" onclick={onnavigate}>inbox</a>
-    <a class="row" class:current={router.route.page === "next"} href="#/next" onclick={onnavigate}>next</a>
+    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox"><Icon name="inbox" />inbox</a>
+    <a class="row" class:current={router.route.page === "next"} href="#/next"><Icon name="next" />next</a>
 
     <h4>categories</h4>
     {#each categories as name}
@@ -28,14 +26,14 @@
             <a
                 class="grow"
                 href={categoryHref(name)}
-                onclick={onnavigate}>{name}</a
+               ><Icon name={categoryIcon(name)} />{name}</a
             >
             <button
                 class="chevron"
                 class:open={expanded[name]}
                 aria-label="show projects in {name}"
                 aria-expanded={expanded[name] ?? false}
-                onclick={() => (expanded[name] = !expanded[name])}>›</button
+                onclick={() => (expanded[name] = !expanded[name])}><Icon name="chevron" /></button
             >
         </div>
         {#if expanded[name]}
@@ -45,14 +43,14 @@
                     class="row sub"
                     class:current={router.route.page === "project" && router.route.number === project.number}
                     href={projectHref(project.number)}
-                    onclick={onnavigate}>{project.title}</a
+                   >{project.title}</a
                 >
             {/each}
             </div>
         {/if}
     {/each}
 
-    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings" onclick={onnavigate}>settings</a>
+    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings"><Icon name="settings" />settings</a>
 </nav>
 
 <style>
@@ -74,6 +72,7 @@
     .row {
         display: flex;
         align-items: center;
+        gap: 0.6rem;
         padding: 0.45em 0.6rem;
         border-radius: 6px;
         color: var(--text);
@@ -86,6 +85,9 @@
         }
     }
     .grow {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         flex: 1;
         color: inherit;
         text-decoration: none;
@@ -109,8 +111,7 @@
         background: none;
         border: 0;
         color: var(--faint);
-        font-size: 1.3em;
-        line-height: 1;
+        line-height: 0;
         padding: 0 0.3em;
         cursor: pointer;
         transition: transform 0.2s ease;

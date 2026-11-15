@@ -30,7 +30,7 @@
     src: url("./assets/fonts/libron-700.woff2") format("woff2");
 }
 
-/* light is the default, dark follows the system setting */
+/* light is the default */
 :root {
     --bg: #fff7f3;
     --bg-alt: #fdeee8;
@@ -48,6 +48,19 @@
     --h2: #d2452f;
     --h3: #b25b00;
     --h4: #8a37d0;
+    --card: #fff;
+    --shadow-rest: 0 1px 2px rgba(80, 30, 50, 0.08), 0 2px 6px rgba(80, 30, 50, 0.06);
+    --shadow-hover: 0 4px 8px rgba(80, 30, 50, 0.1), 0 12px 24px rgba(80, 30, 50, 0.14);
+    /* column colours by status and chip colours by priority; dark has brighter versions */
+    --st-backlog: #8f84a3;
+    --st-next: #9b5bd6;
+    --st-doing: #e8892c;
+    --st-waiting: #3d8bdc;
+    --st-tint: 13%;
+    --pr-1: #e5484d;
+    --pr-2: #ee8a2b;
+    --pr-3: #c99a14;
+    --pr-4: #8f84a3;
     --sunset: linear-gradient(
         90deg,
         #e57c00,
@@ -64,8 +77,9 @@
     color-scheme: light dark;
 }
 
+/* dark: the system setting, unless light is forced; or forced from Settings (data-theme on <html>) */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --bg: #120e16;
         --bg-alt: #0d0a10;
         --border: #2a2130;
@@ -82,6 +96,18 @@
         --h2: #ff7a5c;
         --h3: #ffb347;
         --h4: #c58bff;
+        --card: #1c1623;
+        --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+        --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.45), 0 12px 24px rgba(0, 0, 0, 0.5);
+        --st-backlog: #a89cbb;
+        --st-next: #b887ff;
+        --st-doing: #ffab5c;
+        --st-waiting: #62a8ff;
+        --st-tint: 20%;
+        --pr-1: #ff6b70;
+        --pr-2: #ffa24d;
+        --pr-3: #e8c03a;
+        --pr-4: #a89cbb;
         --sunset: linear-gradient(
             90deg,
             #ffb347,
@@ -93,13 +119,60 @@
     }
 }
 
+:root[data-theme="dark"] {
+    --bg: #120e16;
+    --bg-alt: #0d0a10;
+    --border: #2a2130;
+    --border-hover: #3a2d42;
+    --hover: rgba(255, 255, 255, 0.04);
+    --active: #2a1d2c;
+    --text: #efe7ee;
+    --muted: #b3a5b6;
+    --faint: #7a6b7f;
+    --accent: #ff5e8a;
+    --accent-hover: #ff8fb0;
+    --link: #ffab70;
+    --h1: #ff5e8a;
+    --h2: #ff7a5c;
+    --h3: #ffb347;
+    --h4: #c58bff;
+    --card: #1c1623;
+    --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.45), 0 12px 24px rgba(0, 0, 0, 0.5);
+    --st-backlog: #a89cbb;
+    --st-next: #b887ff;
+    --st-doing: #ffab5c;
+    --st-waiting: #62a8ff;
+    --st-tint: 20%;
+    --pr-1: #ff6b70;
+    --pr-2: #ffa24d;
+    --pr-3: #e8c03a;
+    --pr-4: #a89cbb;
+    --sunset: linear-gradient(
+        90deg,
+        #ffb347,
+        #ff6a5c 30%,
+        #ff3d8b 55%,
+        #b45cff 80%,
+        #4d8dff
+    );
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+}
+
 * {
     box-sizing: border-box;
 }
 
-/* no grey flash when tapping on iOS */
+/* no grey flash when tapping on iOS, and no pinch or double-tap zoom (panning still works) */
 * {
     -webkit-tap-highlight-color: transparent;
+    touch-action: pan-x pan-y;
 }
 
 body {
@@ -139,13 +212,33 @@ input {
     color: inherit;
 }
 
-input {
+input,
+select {
     background: var(--bg-alt);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0.5em 0.7em;
 }
-input:focus {
+/* dropdown: native picker, own arrow */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.2em;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%23a08893'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7em center;
+    background-size: 1em;
+    cursor: pointer;
+}
+/* iOS zooms into any field under 16px when it is focused */
+@media (max-width: 768px) {
+    input,
+    select {
+        font-size: 16px;
+    }
+}
+input:focus,
+select:focus {
     outline: 2px solid var(--accent);
     outline-offset: -1px;
 }
@@ -163,7 +256,7 @@ button.primary:hover {
     background: var(--accent-hover);
 }
 
-/* sunset gradient bar along the bottom of the window */
+/* sunset gradient bar along the bottom of the window; on a phone the bottom bar carries the gradient instead */
 body::after {
     content: "";
     position: fixed;
@@ -174,4 +267,10 @@ body::after {
     background: var(--sunset);
     pointer-events: none;
     z-index: 100;
+}
+
+@media (max-width: 768px) {
+    body::after {
+        display: none;
+    }
 }
