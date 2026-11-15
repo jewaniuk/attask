@@ -1,5 +1,6 @@
 <script lang="ts">
     import Card from "../components/Card.svelte";
+    import AddTaskDialog from "../components/AddTaskDialog.svelte";
     import Icon from "../components/Icon.svelte";
     import { postTask } from "../lib/api";
     import { board, inboxTasks, loadBoard } from "../lib/board.svelte";
@@ -13,25 +14,17 @@
             "Notes:\n- ",
     );
 
-    let title = $state("");
-    /** Whether the title box is showing. */
+    /** Whether the add-task pop-up is showing. */
     let open = $state(false);
-    let adding = $state(false);
     /** Tasks just created that the board does not list yet: GitHub adds a new issue to the board a few seconds after creating it. */
     let pending: { number: number; title: string }[] = $state([]);
 
-    /** Creates a task from the box, shows it as pending, then reloads the board until it appears. */
-    async function add(e: SubmitEvent): Promise<void> {
-        e.preventDefault();
-        const text = title.trim();
-        if (!text || adding) return;
-        adding = true;
+    /** Creates a task, shows it as pending, then reloads the board until it appears. */
+    async function add(text: string): Promise<void> {
         try {
             const { number } = await postTask(text);
             pending.push({ number, title: text });
-            title = "";
             board.error = "";
-            adding = false;
             for (let i = 0; i < 6 && !board.items.some((t) => t.number === number); i++) {
                 await new Promise((r) => setTimeout(r, 2500));
                 await loadBoard();
@@ -39,13 +32,7 @@
             pending = pending.filter((p) => p.number !== number);
         } catch (err) {
             board.error = err instanceof Error ? err.message : String(err);
-            adding = false;
         }
-    }
-
-    // puts the cursor in the title box when it opens
-    function focus(node: HTMLInputElement): void {
-        node.focus();
     }
 </script>
 
@@ -61,15 +48,10 @@
     {/each}
 </div>
 
-{#if open}
-    <form class="add" onsubmit={add}>
-        <input use:focus bind:value={title} placeholder="add a task" aria-label="new task title" enterkeyhint="send" />
-        <button disabled={adding || !title.trim()}>add</button>
-    </form>
-{/if}
+<AddTaskDialog bind:open onsubmit={add} />
 
 <div class="actions">
-    <button class="pill" onclick={() => (open = !open)} aria-expanded={open}><Icon name="plus" size={1.3} />add task</button>
+    <button class="pill" onclick={() => (open = true)}><Icon name="plus" size={1.3} />add task</button>
     {#if tasks.length > 0}
         <a class="pill" href="https://claude.ai/new?q={encodeURIComponent(prompt)}" target="_blank" rel="noopener">
             <Icon name="claude" size={1.3} />triage inbox
@@ -96,36 +78,6 @@
         color: var(--muted);
         border: 1px dashed var(--border);
         border-radius: 0.6rem;
-    }
-    .add {
-        width: 100%;
-        display: flex;
-        gap: 0.5rem;
-        max-width: 36rem;
-        margin-top: 1.2rem;
-    }
-    .add input {
-        flex: 1;
-        min-width: 0;
-        padding: 0.55em 0.9em;
-        font: inherit;
-        font-size: 16px; /* under 16px iOS zooms into the box on focus */
-        color: var(--text);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-    }
-    .add button {
-        padding: 0.55em 1.2em;
-        font: inherit;
-        font-weight: 500;
-        color: var(--text);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-    }
-    .add button:disabled {
-        opacity: 0.5;
     }
     .empty {
         color: var(--muted);

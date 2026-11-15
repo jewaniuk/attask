@@ -48,7 +48,7 @@
             <h2>{item.title}</h2>
             <button class="close" aria-label="close" onclick={() => select(null)}>×</button>
         </header>
-        <div class="controls">
+        <div class="controls" class:inbox={item.status === "inbox"}>
             <!-- inbox tasks are triaged by an agent, so they have no controls here -->
             {#if item.parent !== null}<StatusMenu {item} />{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
@@ -58,9 +58,9 @@
             {#if item.status === "inbox"}
                 {#if confirming}
                     <span class="confirm">
-                        delete for good?
-                        <button class="danger" onclick={() => removeTask(item)}>delete</button>
-                        <button onclick={() => (confirming = false)}>keep</button>
+                        are you sure?
+                        <button class="yes" aria-label="delete task for good" onclick={() => removeTask(item)}><Icon name="check" size={1.1} /></button>
+                        <button aria-label="keep task" onclick={() => (confirming = false)}><Icon name="close" size={1.1} /></button>
                     </span>
                 {:else}
                     <button class="trash" aria-label="delete task" onclick={() => (confirming = true)}><Icon name="trash" size={1.1} /></button>
@@ -88,31 +88,33 @@
 </dialog>
 
 <style>
+    /* an inbox task has no status menu, so the link stays left and the delete controls take the right edge; the confirm text then grows leftwards without moving the link */
+    .inbox .issue {
+        margin-left: 0;
+    }
+    .inbox .trash,
+    .inbox .confirm {
+        margin-left: auto;
+    }
     .trash,
     .confirm button {
-        font: inherit;
-        color: var(--text);
-        background: none;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 0.2em 0.7em;
-    }
-    .trash {
         display: inline-flex;
         align-items: center;
-        padding: 0.3em 0.5em;
-        margin-left: auto;
+        padding: 0.3em;
+        color: var(--muted);
+        background: none;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
     }
     .confirm {
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        margin-left: auto;
+        gap: 0.2rem;
+        color: var(--muted);
     }
-    .confirm .danger {
-        color: #fff;
-        background: #c0392b;
-        border-color: #c0392b;
+    .confirm .yes {
+        color: #c0392b;
     }
     dialog {
         width: min(36rem, 100% - 2rem);
