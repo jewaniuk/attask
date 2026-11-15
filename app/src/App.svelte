@@ -9,7 +9,6 @@
     import Next from "./pages/Next.svelte";
     import Project from "./pages/Project.svelte";
     import Settings from "./pages/Settings.svelte";
-    import { tick } from "./lib/haptics";
     import { board, loadBoard } from "./lib/board.svelte";
     import { router } from "./lib/router.svelte";
 
@@ -72,8 +71,6 @@
         const dy = e.touches[0].clientY - start.y;
         // a sideways swipe on a board is not a pull
         const next = dy > 0 && dy > Math.abs(dx) ? Math.min(dy * 0.5, 80) : 0;
-        // a tick on Android as the pull passes the line; iPhone only allows one at release
-        if (pull < pullNeeded && next >= pullNeeded && "vibrate" in navigator) tick();
         pull = next;
     }
 
@@ -82,7 +79,6 @@
         start = null;
         dragging = false;
         if (pull >= pullNeeded) {
-            tick();
             refreshing = true;
             pull = pullNeeded;
             await loadBoard();
