@@ -137,3 +137,24 @@ export async function fetchDetail(token: string, number: number): Promise<ItemDe
 	const issue = (await graphql(token, query, { n: number })).repository.issue;
 	return { bodyHtml: issue.bodyHTML, comments: issue.comments.nodes.map((c: any) => ({ createdAt: c.createdAt, bodyHtml: c.bodyHTML })) };
 }
+
+/**
+ * Creates an issue in `jewaniuk/tasks`. A GitHub rule adds it to the board as `inbox` a few seconds later, so the status is not set here.
+ *
+ * Args:
+ * 	token: GitHub token.
+ * 	title: Issue title.
+ *
+ * Returns:
+ * 	The new issue's number and address.
+ */
+export async function createIssue(token: string, title: string): Promise<{ number: number; url: string }> {
+	const res = await fetch('https://api.github.com/repos/jewaniuk/tasks/issues', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'attask-worker' },
+		body: JSON.stringify({ title }),
+	});
+	if (!res.ok) throw new Error(`github returned ${res.status}`);
+	const issue: any = await res.json();
+	return { number: issue.number, url: issue.html_url };
+}

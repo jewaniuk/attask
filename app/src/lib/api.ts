@@ -72,3 +72,8 @@ export function fetchDetail(number: number): Promise<ItemDetail> {
 export async function postStatus(id: string, status: string): Promise<StatusWrite[]> {
   return (await request<{ writes: StatusWrite[] }>(`/items/${id}/status`, { status })).writes;
 }
+
+/** Asks the Worker to create a task with this title. It lands in the inbox on the board a few seconds later. Returns the new issue's number and address. */
+export function postTask(title: string): Promise<{ number: number; url: string }> {
+  return request("/tasks", { title });
+}

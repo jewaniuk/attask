@@ -1,4 +1,4 @@
-import { fetchBoard, fetchDetail, writeStatuses } from './github';
+import { createIssue, fetchBoard, fetchDetail, writeStatuses } from './github';
 import { planStatus } from './rules';
 
 async function route(request: Request, env: Env): Promise<Response> {
@@ -25,6 +25,13 @@ async function route(request: Request, env: Env): Promise<Response> {
 		if (!plan.ok) return Response.json({ error: plan.reason }, { status: 409 });
 		await writeStatuses(env.GITHUB_TOKEN, plan.writes);
 		return Response.json({ writes: plan.writes });
+	}
+
+	if (request.method === 'POST' && url.pathname === '/tasks') {
+		const body: any = await request.json();
+		const title = typeof body.title === 'string' ? body.title.trim() : '';
+		if (!title) return Response.json({ error: 'title is empty' }, { status: 400 });
+		return Response.json(await createIssue(env.GITHUB_TOKEN, title));
 	}
 
 	return new Response('not found', { status: 404 });
