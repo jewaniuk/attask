@@ -15,8 +15,8 @@
 <div class="board">
     {#each statuses as status}
         {@const cards = items.filter((i) => i.status === status)}
-        <section>
-            <h3>{status} <span class="count">{cards.length}</span></h3>
+        <section style="--st: var(--st-{status})">
+            <h3>{status}</h3>
             <div class="cards">
                 {#each cards as item (item.id)}
                     <Card {item} />
@@ -35,9 +35,9 @@
         align-items: start;
     }
     section {
-        background: var(--bg-alt);
-        border-radius: 10px;
-        padding: 0.7rem;
+        background: color-mix(in srgb, var(--st) 13%, var(--bg-alt));
+        border-radius: 12px;
+        padding: 0.8rem;
         min-width: 0;
     }
     h3 {
@@ -46,11 +46,7 @@
         font-size: 1em;
         font-variant: small-caps;
         letter-spacing: 0.04em;
-        color: var(--h4);
-    }
-    .count {
-        color: var(--faint);
-        font-weight: 400;
+        color: var(--st);
     }
     .cards {
         display: flex;
@@ -61,15 +57,25 @@
     /* phone: one column at a time, swipe sideways */
     @media (max-width: 768px) {
         .board {
-            grid-auto-columns: 85%;
+            grid-auto-columns: 100%;
+            gap: 0.75rem;
+            /* the board reaches to the bottom of the screen, so a swipe works anywhere below the title */
+            min-height: calc(100dvh - 6rem);
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             margin: 0 -1.5rem;
             padding: 0 1.5rem;
-            scroll-padding: 0 1.5rem;
+            /* keep the sideways swipe from chaining into the page or the browser's back gesture */
+            overscroll-behavior-x: contain;
+            scrollbar-width: none;
+        }
+        .board::-webkit-scrollbar {
+            display: none;
         }
         section {
-            scroll-snap-align: start;
+            scroll-snap-align: center;
+            /* one swipe moves one column, however hard the flick */
+            scroll-snap-stop: always;
         }
     }
 </style>

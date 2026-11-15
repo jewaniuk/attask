@@ -1,6 +1,6 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
-    import Icon from "./Icon.svelte";
+    import Icon, { categoryIcon } from "./Icon.svelte";
     import { board, categoryNames, openProjects } from "../lib/board.svelte";
     import {
         categoryHref,
@@ -29,7 +29,7 @@
             <a
                 class="grow"
                 href={categoryHref(name)}
-                onclick={onnavigate}>{name}</a
+                onclick={onnavigate}><Icon name={categoryIcon(name)} />{name}</a
             >
             <button
                 class="chevron"
@@ -88,6 +88,9 @@
         }
     }
     .grow {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         flex: 1;
         color: inherit;
         text-decoration: none;
