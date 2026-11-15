@@ -1,5 +1,6 @@
 <script lang="ts">
     import { loadSettings, saveSettings } from "../lib/api";
+    import { loadBoard } from "../lib/board.svelte";
 
     let settings = $state(loadSettings());
 </script>
@@ -9,6 +10,7 @@
     onsubmit={(e) => {
         e.preventDefault();
         saveSettings(settings);
+        loadBoard();
     }}
 >
     <label
