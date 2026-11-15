@@ -1,4 +1,4 @@
-import { deleteTask, fetchBoard, postStatus, type BoardItem, type StatusWrite } from "./api";
+import { closeTaskNotPlanned, deleteTask, fetchBoard, postStatus, type BoardItem, type StatusWrite } from "./api";
 
 /** Board state shared by every component. Fill it with `loadBoard`. */
 export const board: { items: BoardItem[]; error: string; selected: number | null } = $state({
@@ -84,6 +84,19 @@ export async function removeTask(item: BoardItem): Promise<void> {
     try {
         await deleteTask(item.number);
         board.items = board.items.filter((i) => i.id !== item.id);
+        board.selected = null;
+        board.error = "";
+    } catch (e) {
+        board.error = e instanceof Error ? e.message : String(e);
+    }
+}
+
+/** Closes a triaged task as not planned: the Worker closes the issue, then the task leaves the open lists and its sheet closes. A refusal is put in `board.error` and the task stays. */
+export async function dropTask(item: BoardItem): Promise<void> {
+    try {
+        await closeTaskNotPlanned(item.number);
+        item.open = false;
+        item.status = "done";
         board.selected = null;
         board.error = "";
     } catch (e) {

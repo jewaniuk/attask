@@ -82,3 +82,8 @@ export function postTask(title: string): Promise<{ number: number; url: string }
 export function deleteTask(number: number): Promise<void> {
   return request(`/issues/${number}`, undefined, "DELETE");
 }
+
+/** Asks the Worker to close a triaged task's issue as not planned. Throws the Worker's reason if it refuses. */
+export function closeTaskNotPlanned(number: number): Promise<void> {
+  return request(`/issues/${number}/not-planned`, {});
+}

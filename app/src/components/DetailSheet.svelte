@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fetchDetail, type ItemDetail } from "../lib/api";
-    import { board, removeTask, select } from "../lib/board.svelte";
+    import { board, dropTask, removeTask, select } from "../lib/board.svelte";
     import Icon from "./Icon.svelte";
     import StatusMenu from "./StatusMenu.svelte";
 
@@ -48,23 +48,22 @@
             <h2>{item.title}</h2>
             <button class="close" aria-label="close" onclick={() => select(null)}>×</button>
         </header>
-        <div class="controls" class:inbox={item.status === "inbox"}>
+        <div class="controls">
             <!-- inbox tasks are triaged by an agent, so they have no controls here -->
             {#if item.parent !== null}<StatusMenu {item} />{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
             <a class="issue" href={item.url} target="_blank" rel="noopener"><Icon name="link" size={1} />#{item.number}</a>
-            {#if item.status === "inbox"}
-                {#if confirming}
-                    <span class="confirm">
-                        are you sure?
-                        <button class="yes" aria-label="delete task for good" onclick={() => removeTask(item)}><Icon name="check" size={1.1} /></button>
-                        <button aria-label="keep task" onclick={() => (confirming = false)}><Icon name="close" size={1.1} /></button>
-                    </span>
-                {:else}
-                    <button class="trash" aria-label="delete task" onclick={() => (confirming = true)}><Icon name="trash" size={1.1} /></button>
-                {/if}
+            <!-- an inbox task is deleted for good; a triaged one is closed as not planned -->
+            {#if confirming}
+                <span class="confirm">
+                    are you sure?
+                    <button class="yes" aria-label={item.status === "inbox" ? "delete task for good" : "close task as not planned"} onclick={() => (item.status === "inbox" ? removeTask(item) : dropTask(item))}><Icon name="check" size={1.1} /></button>
+                    <button aria-label="keep task" onclick={() => (confirming = false)}><Icon name="close" size={1.1} /></button>
+                </span>
+            {:else}
+                <button class="trash" aria-label={item.status === "inbox" ? "delete task" : "close task as not planned"} onclick={() => (confirming = true)}><Icon name="trash" size={1.1} /></button>
             {/if}
         </div>
         {#if board.error}<p class="error">{board.error}</p>{/if}
@@ -88,12 +87,9 @@
 </dialog>
 
 <style>
-    /* an inbox task has no status menu, so the link stays left and the delete controls take the right edge; the confirm text then grows leftwards without moving the link */
-    .inbox .issue {
-        margin-left: 0;
-    }
-    .inbox .trash,
-    .inbox .confirm {
+    /* the link stays left and the delete controls take the right edge; the confirm text then grows leftwards without moving the link */
+    .trash,
+    .confirm {
         margin-left: auto;
     }
     .trash,
@@ -185,7 +181,6 @@
         display: inline-flex;
         align-items: center;
         gap: 0.25em;
-        margin-left: auto;
         color: var(--muted);
         text-decoration: none;
     }

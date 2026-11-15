@@ -18,29 +18,35 @@
     /** Whether the add-task pop-up is showing. */
     let open = $state(false);
     /** Tasks just created that the board does not list yet: GitHub adds a new issue to the board a few seconds after creating it. */
-    let pending: { number: number; title: string }[] = $state([]);
+    let pending: { key: number; number: number | null; title: string }[] = $state([]);
+    let nextKey = 0;
 
-    /** Creates a task, shows it as pending, then reloads the board until it appears. */
+    /** Creates a task, shows it as pending at once (so the slot the pop-up held does not jump), then reloads the board until it appears. */
     async function add(text: string): Promise<void> {
+        const row = { key: nextKey++, number: null as number | null, title: text };
+        pending.push(row);
+        const mine = pending[pending.length - 1];
         try {
             const { number } = await postTask(text);
-            pending.push({ number, title: text });
+            mine.number = number;
             board.error = "";
             for (let i = 0; i < 6 && !board.items.some((t) => t.number === number); i++) {
                 await new Promise((r) => setTimeout(r, 2500));
                 await loadBoard();
             }
-            pending = pending.filter((p) => p.number !== number);
         } catch (err) {
             board.error = err instanceof Error ? err.message : String(err);
         }
+        pending = pending.filter((p) => p.key !== row.key);
     }
 </script>
 
 <div class="page">
 <div class="list" bind:this={list}>
-    {#each pending as p (p.number)}
-        <div class="pending"><span class="num">#{p.number}</span> {p.title}</div>
+    <!-- while the pop-up is open it floats over this empty slot, and the cards wait below it -->
+    {#if open}<div class="slot"></div>{/if}
+    {#each pending as p (p.key)}
+        <div class="pending">{#if p.number}<span>#{p.number}</span>{/if}{p.title}</div>
     {/each}
     {#each tasks as item (item.id)}
         <Card {item} />
@@ -74,8 +80,12 @@
         gap: 0.5rem;
         max-width: 36rem;
     }
+    .slot {
+        height: 3.5rem;
+    }
     .pending {
         display: flex;
+        gap: 0.4em;
         align-items: center;
         min-height: 3.5rem; /* the height of the pop-up it replaces */
         padding: 0.45rem 0.8rem;
