@@ -37,7 +37,7 @@ node phone.mjs --shot out.png                  # page screenshot (not the status
 ## Lessons from the first use
 
 - **A home-screen icon keeps the settings it had when it was added.** The status bar strip bug of checkpoint C was an old icon made before `viewport-fit=cover` and `black-translucent` were in the page. Delete and re-add the icon after changing those. The new icon starts signed out: its storage is separate.
-- **iOS 26 home-screen apps:** at times `innerHeight` and `100dvh` are 59px short of the screen (`100lvh` stays right), so fixed `bottom` offsets float 59px high. It later went away on its own, so never measure it once at load: use `calc(... - var(--standalone) * (100lvh - 100dvh))`, which `main.ts` and `BottomBar.svelte` do. Cause unknown; check `innerHeight` against `screen.height` before trusting a layout measurement.
+- **iOS 26 home-screen apps:** at times `innerHeight` and `100dvh` are 59px short of the screen (`100lvh` stays right), so fixed `bottom` offsets float 59px high. It later went away on its own, so never measure it once at load: use `calc(... - var(--standalone) * (100lvh - 100dvh))`, which `main.ts` and `BottomBar.svelte` do. Cause unknown. It always starts short on a cold start and the first swipe fixes it (the page must be scrollable and scroll), so `wakeViewport()` in `main.ts` does that by hand: a page 1px too tall, scrolled down and back. Check `innerHeight` against `screen.height` before trusting a layout measurement.
 - **`backdrop-filter` was clipped** to that short area (873px of 932px) while it lasted; plain fixed layers were not. The pill has no blur because of it.
 
 ## Not covered

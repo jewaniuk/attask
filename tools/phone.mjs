@@ -17,7 +17,7 @@ ws.onmessage = (e) => {
   if (m.method === 'Target.targetCreated' && !m.params.targetInfo.isProvisional && !target) {
     target = m.params.targetInfo.targetId
     if (shot) send(1, 'Page.snapshotRect', { x: 0, y: 0, width: 430, height: 932, coordinateSystem: 'Viewport' })
-    else send(1, 'Runtime.evaluate', { expression: expr, returnByValue: true })
+    else send(1, 'Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true })
   } else if (m.method === 'Target.dispatchMessageFromTarget') {
     const r = JSON.parse(m.params.message)
     if (r.id !== 1) return
