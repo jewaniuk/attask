@@ -60,7 +60,8 @@
         pointer-events: none;
         -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         -webkit-mask-composite: xor;
-        mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
     }
     a {
         display: flex;
