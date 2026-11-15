@@ -82,6 +82,11 @@
         color: var(--accent);
         font-weight: 600;
     }
+    /* each icon gets its own layer, so it is moved as a finished picture instead of being redrawn at fractional positions */
+    a :global(svg) {
+        will-change: transform;
+        transform: translateZ(0);
+    }
     .label {
         max-width: 0;
         overflow: hidden;
