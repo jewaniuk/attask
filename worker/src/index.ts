@@ -1,5 +1,5 @@
-import { fetchBoard, fetchDetail, setParent, writeStatuses } from './github';
-import { planParent, planStatus } from './rules';
+import { fetchBoard, fetchDetail, writeStatuses } from './github';
+import { planStatus } from './rules';
 
 async function route(request: Request, env: Env): Promise<Response> {
 	const url = new URL(request.url);
@@ -17,26 +17,14 @@ async function route(request: Request, env: Env): Promise<Response> {
 		return Response.json(await fetchDetail(env.GITHUB_TOKEN, Number(detail[1])));
 	}
 
-	const edit = url.pathname.match(/^\/items\/([\w-]+)\/(status|parent)$/);
+	const edit = url.pathname.match(/^\/items\/([\w-]+)\/status$/);
 	if (request.method === 'POST' && edit) {
-		const [, id, action] = edit;
 		const body: any = await request.json();
 		const items = await fetchBoard(env.GITHUB_TOKEN);
-
-		if (action === 'status') {
-			const plan = planStatus(items, id, String(body.status));
-			if (!plan.ok) return Response.json({ error: plan.reason }, { status: 409 });
-			await writeStatuses(env.GITHUB_TOKEN, plan.writes);
-			return Response.json({ writes: plan.writes });
-		}
-
-		const plan = planParent(items, id, Number(body.parent));
+		const plan = planStatus(items, edit[1], String(body.status));
 		if (!plan.ok) return Response.json({ error: plan.reason }, { status: 409 });
-		const task = items.find((i) => i.id === id)!;
-		await setParent(env.GITHUB_TOKEN, Number(body.parent), task.number);
-		const writes = [{ id, number: task.number, status: plan.status }];
-		await writeStatuses(env.GITHUB_TOKEN, writes);
-		return Response.json({ writes });
+		await writeStatuses(env.GITHUB_TOKEN, plan.writes);
+		return Response.json({ writes: plan.writes });
 	}
 
 	return new Response('not found', { status: 404 });

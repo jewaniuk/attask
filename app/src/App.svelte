@@ -42,6 +42,37 @@
         }
     });
 
+    // pull down from the top of the page on a phone to reload the board
+    let main: HTMLElement;
+    let pull = $state(0);
+    let refreshing = $state(false);
+    let start: { x: number; y: number } | null = null;
+    const pullNeeded = 60;
+
+    function touchStart(e: TouchEvent): void {
+        if (main.scrollTop <= 0 && !refreshing) start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+
+    function touchMove(e: TouchEvent): void {
+        if (!start) return;
+        const dx = e.touches[0].clientX - start.x;
+        const dy = e.touches[0].clientY - start.y;
+        // a sideways swipe on a board is not a pull
+        pull = dy > 0 && dy > Math.abs(dx) ? Math.min(dy * 0.5, 80) : 0;
+    }
+
+    async function touchEnd(): Promise<void> {
+        if (!start) return;
+        start = null;
+        if (pull >= pullNeeded) {
+            refreshing = true;
+            pull = pullNeeded;
+            await loadBoard();
+            refreshing = false;
+        }
+        pull = 0;
+    }
+
     onMount(loadBoard);
 </script>
 
@@ -66,7 +97,7 @@
         ></div>
     </aside>
 
-    <main>
+    <main bind:this={main} ontouchstart={touchStart} ontouchmove={touchMove} ontouchend={touchEnd} ontouchcancel={touchEnd}>
         <div class="pagehead">
             <h1>{title}</h1>
         </div>
@@ -89,6 +120,10 @@
         </div>
     </main>
 </div>
+
+{#if pull > 0}
+    <div class="pull" style="transform: translateY({pull}px)">{refreshing ? "refreshing ..." : pull >= pullNeeded ? "release to refresh" : "pull to refresh"}</div>
+{/if}
 
 <div class="bottombar"><BottomBar /></div>
 <DetailSheet />
@@ -150,6 +185,19 @@
     }
     .error {
         color: var(--accent);
+    }
+
+    /* slides down from the top edge, under the status bar */
+    .pull {
+        position: fixed;
+        top: calc(env(safe-area-inset-top, 0px) - 2rem);
+        left: 0;
+        right: 0;
+        z-index: 20;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85em;
+        pointer-events: none;
     }
 
     .bottombar {

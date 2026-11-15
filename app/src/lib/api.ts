@@ -72,8 +72,3 @@ export function fetchDetail(number: number): Promise<ItemDetail> {
 export async function postStatus(id: string, status: string): Promise<StatusWrite[]> {
   return (await request<{ writes: StatusWrite[] }>(`/items/${id}/status`, { status })).writes;
 }
-
-/** Asks the Worker to make an inbox task a sub-issue of a project. Returns the status it gave the task. */
-export async function postParent(id: string, parent: number): Promise<StatusWrite[]> {
-  return (await request<{ writes: StatusWrite[] }>(`/items/${id}/parent`, { parent })).writes;
-}

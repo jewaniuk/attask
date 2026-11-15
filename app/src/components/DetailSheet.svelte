@@ -1,10 +1,10 @@
 <script lang="ts">
     import { fetchDetail, type ItemDetail } from "../lib/api";
-    import { board, categoryNames, changeParent, openProjects, select } from "../lib/board.svelte";
+    import { board, select } from "../lib/board.svelte";
     import Icon from "./Icon.svelte";
     import StatusMenu from "./StatusMenu.svelte";
 
-    /** Pop-up for the task in `board.selected`: a bottom sheet on a phone, a centred panel on desktop. Shows the status menu (or a parent picker for an inbox task), the issue body and its comments, fetched when it opens. */
+    /** Pop-up for the task in `board.selected`: a bottom sheet on a phone, a centred panel on desktop. Shows the status menu (not for an inbox task), the issue body and its comments, fetched when it opens. */
     let dialog: HTMLDialogElement;
 
     let item = $derived(board.items.find((i) => i.number === board.selected && !i.isProject));
@@ -17,7 +17,10 @@
             if (dialog.open) dialog.close();
             return;
         }
-        if (!dialog.open) dialog.showModal();
+        if (!dialog.open) {
+            dialog.showModal();
+            dialog.focus();
+        }
         detail = null;
         failed = "";
         // ignore an answer that arrives after another task was opened
@@ -27,9 +30,9 @@
     });
 </script>
 
-<!-- autofocus keeps the browser from focusing the close button when the sheet opens -->
+<!-- the sheet takes the focus itself (see the effect), so the browser doesn't focus the close button -->
 <dialog
-    autofocus
+    tabindex="-1"
     bind:this={dialog}
     onclose={() => select(null)}
     onclick={(e) => e.target === dialog && select(null)}
@@ -40,24 +43,8 @@
             <button class="close" aria-label="close" onclick={() => select(null)}>×</button>
         </header>
         <div class="controls">
-            {#if item.parent === null}
-                <!-- an inbox task needs a project before it can have any other status -->
-                <select
-                    aria-label="project"
-                    onchange={(e) => changeParent(item, Number(e.currentTarget.value))}
-                >
-                    <option value="" selected disabled>choose a project</option>
-                    {#each categoryNames(board.items) as category}
-                        <optgroup label={category}>
-                            {#each openProjects(board.items).filter((p) => p.category === category) as project}
-                                <option value={project.number}>{project.title}</option>
-                            {/each}
-                        </optgroup>
-                    {/each}
-                </select>
-            {:else}
-                <StatusMenu {item} />
-            {/if}
+            <!-- inbox tasks are triaged by an agent, so they have no controls here -->
+            {#if item.parent !== null}<StatusMenu {item} />{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
@@ -128,14 +115,6 @@
         align-items: center;
         gap: 0.4rem;
         margin: 0.8rem 0;
-    }
-    .controls select {
-        font: inherit;
-        color: var(--text);
-        background: var(--bg-alt);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 0.25em 0.8em;
     }
     .chip {
         display: inline-flex;

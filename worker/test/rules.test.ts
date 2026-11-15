@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planParent, planStatus } from '../src/rules';
+import { planStatus } from '../src/rules';
 import type { BoardItem } from '../src/types';
 
 function item(over: Partial<BoardItem>): BoardItem {
@@ -50,10 +50,12 @@ describe('planStatus', () => {
 		expect(numbers(planStatus(board, 'id1', 'done'))).toEqual([1]);
 		expect(numbers(planStatus(board, 'id2', 'doing'))).toEqual([2]);
 	});
-	it('refuses next or doing under a paused project', () => {
+	it('lets a task of a paused project only match it or be done', () => {
 		expect(planStatus(board, 'id13', 'next').ok).toBe(false);
 		expect(planStatus(board, 'id13', 'doing').ok).toBe(false);
-		expect(planStatus(board, 'id13', 'waiting').ok).toBe(true);
+		expect(planStatus(board, 'id13', 'waiting').ok).toBe(false);
+		expect(planStatus(board, 'id13', 'done').ok).toBe(true);
+		expect(planStatus(board, 'id13', 'backlog')).toEqual({ ok: true, writes: [] });
 	});
 	it('refuses statuses that do not fit the kind', () => {
 		expect(planStatus(board, 'id1', 'next').ok).toBe(false);
@@ -66,21 +68,5 @@ describe('planStatus', () => {
 	});
 	it('refuses an unknown item', () => {
 		expect(planStatus(board, 'nope', 'done').ok).toBe(false);
-	});
-});
-
-describe('planParent', () => {
-	it('gives backlog under an active project', () => {
-		expect(planParent(board, 'id20', 1)).toEqual({ ok: true, status: 'backlog' });
-	});
-	it('copies a paused parent status', () => {
-		expect(planParent(board, 'id20', 2)).toEqual({ ok: true, status: 'backlog' });
-		const waiting = [...board, item({ number: 3, isProject: true, status: 'waiting' })];
-		expect(planParent(waiting, 'id20', 3)).toEqual({ ok: true, status: 'waiting' });
-	});
-	it('refuses a task that has a parent, a project, or a non-project parent', () => {
-		expect(planParent(board, 'id10', 1).ok).toBe(false);
-		expect(planParent(board, 'id1', 2).ok).toBe(false);
-		expect(planParent(board, 'id20', 10).ok).toBe(false);
 	});
 });

@@ -118,27 +118,6 @@ export async function writeStatuses(token: string, writes: StatusWrite[]): Promi
 }
 
 /**
- * Makes an issue a sub-issue of another.
- *
- * Args:
- * 	token: GitHub token.
- * 	parent: Issue number of the project.
- * 	child: Issue number of the task.
- */
-export async function setParent(token: string, parent: number, child: number): Promise<void> {
-	const query = `
-	query($p: Int!, $c: Int!) {
-		repository(owner: "jewaniuk", name: "tasks") { parent: issue(number: $p) { id } child: issue(number: $c) { id } }
-	}`;
-	const ids = (await graphql(token, query, { p: parent, c: child })).repository;
-	await graphql(
-		token,
-		`mutation($p: ID!, $c: ID!) { addSubIssue(input: { issueId: $p, subIssueId: $c }) { clientMutationId } }`,
-		{ p: ids.parent.id, c: ids.child.id },
-	);
-}
-
-/**
  * Fetches an issue's body and comments, rendered to HTML by GitHub.
  *
  * Args:

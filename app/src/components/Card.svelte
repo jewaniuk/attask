@@ -31,6 +31,7 @@
             {#if item.priority}<span class="chip priority" style="--pr: var(--pr-{priorityLevel})">{item.priority}</span>{/if}
             <span class="chip">{taskCount} open</span>
         {:else}
+            {#if item.status === "inbox"}<span class="chip">#{item.number}</span>{/if}
             {#if projectTitle}<span class="chip">{projectTitle}</span>{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}

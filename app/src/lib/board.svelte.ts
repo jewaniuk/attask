@@ -1,4 +1,4 @@
-import { fetchBoard, postParent, postStatus, type BoardItem, type StatusWrite } from "./api";
+import { fetchBoard, postStatus, type BoardItem, type StatusWrite } from "./api";
 
 /** Board state shared by every component. Fill it with `loadBoard`. */
 export const board: { items: BoardItem[]; error: string; selected: number | null } = $state({
@@ -75,17 +75,6 @@ export async function changeStatus(item: BoardItem, status: string): Promise<voi
     } catch (e) {
         item.status = before.status;
         item.open = before.open;
-        board.error = e instanceof Error ? e.message : String(e);
-    }
-}
-
-/** Makes an inbox task a sub-issue of a project. The task gets the status the Worker picks. */
-export async function changeParent(item: BoardItem, parent: number): Promise<void> {
-    try {
-        apply(await postParent(item.id, parent));
-        item.parent = parent;
-        board.error = "";
-    } catch (e) {
         board.error = e instanceof Error ? e.message : String(e);
     }
 }
