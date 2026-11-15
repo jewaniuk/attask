@@ -1,14 +1,12 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import Icon from "./components/Icon.svelte";
+    import BottomBar from "./components/BottomBar.svelte";
     import Sidebar from "./components/Sidebar.svelte";
     import Category from "./pages/Category.svelte";
     import Project from "./pages/Project.svelte";
     import Settings from "./pages/Settings.svelte";
     import { board, loadBoard } from "./lib/board.svelte";
     import { router } from "./lib/router.svelte";
-
-    let drawerOpen = $state(false);
 
     // desktop sidebar width in px, dragged from its right edge and kept on this device
     const minWidth = 200;
@@ -46,9 +44,8 @@
 </script>
 
 <div class="layout" style="--sidebar-w: {sidebarWidth}px">
-    <button class="backdrop" class:open={drawerOpen} aria-label="close menu" tabindex={drawerOpen ? 0 : -1} onclick={() => (drawerOpen = false)}></button>
-    <aside class:open={drawerOpen}>
-        <Sidebar onnavigate={() => (drawerOpen = false)} />
+    <aside>
+        <Sidebar />
         <div
             class="resizer"
             role="slider"
@@ -69,7 +66,6 @@
 
     <main>
         <div class="pagehead">
-            <button class="menu" aria-label="open menu" onclick={() => (drawerOpen = true)}><Icon name="menu" size={1.3} /></button>
             <h1>{title}</h1>
         </div>
         <div class="content">
@@ -87,6 +83,8 @@
         </div>
     </main>
 </div>
+
+<div class="bottombar"><BottomBar /></div>
 
 <style>
     .layout {
@@ -140,10 +138,6 @@
     .content {
         padding: 0.5rem 3rem 1.5rem;
     }
-    .menu,
-    .backdrop {
-        display: none;
-    }
     .pagehead h1 {
         min-width: 0;
     }
@@ -151,13 +145,20 @@
         color: var(--accent);
     }
 
-    /* phone: the sidebar becomes a drawer over the page */
+    .bottombar {
+        display: none;
+    }
+
+    /* phone: no sidebar, the floating bar at the bottom moves between pages */
     @media (max-width: 768px) {
         .layout {
             grid-template-columns: 1fr;
         }
-        .resizer {
+        aside {
             display: none;
+        }
+        .bottombar {
+            display: block;
         }
         /* keep clear of the status bar in the installed app */
         .pagehead {
@@ -167,40 +168,9 @@
             font-size: 1.6em;
             line-height: 1.15;
         }
-        .menu {
-            display: block;
-            background: none;
-            border: 0;
-            padding: 0.2rem 0.4rem;
-            line-height: 0;
-            color: var(--muted);
-            cursor: pointer;
-        }
-        aside {
-            position: fixed;
-            inset: 0 auto 0 0;
-            width: min(280px, 85vw);
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-            z-index: 20;
-        }
-        aside.open {
-            transform: none;
-        }
-        .backdrop {
-            display: block;
-            position: fixed;
-            inset: 0;
-            border: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .backdrop.open {
-            opacity: 1;
-            pointer-events: auto;
+        /* room under the last card for the bar */
+        .content {
+            padding: 0.5rem 1.5rem calc(env(safe-area-inset-bottom, 0px) + 6rem);
         }
     }
 </style>

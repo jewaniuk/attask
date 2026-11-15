@@ -71,7 +71,7 @@
             grid-auto-columns: 100%;
             gap: 0.75rem;
             /* the board reaches to the bottom of the screen, so a swipe works anywhere below the title */
-            min-height: calc(100dvh - 6rem);
+            min-height: calc(100dvh - 11rem);
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             margin: 0 -1.5rem;

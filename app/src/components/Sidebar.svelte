@@ -8,17 +8,14 @@
         router,
     } from "../lib/router.svelte";
 
-    /** Called after any link is tapped, so the mobile drawer can close. */
-    let { onnavigate }: { onnavigate: () => void } = $props();
-
     let categories = $derived(categoryNames(board.items));
     let projects = $derived(openProjects(board.items));
     let expanded: Record<string, boolean> = $state({});
 </script>
 
 <nav>
-    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox" onclick={onnavigate}><Icon name="inbox" />inbox</a>
-    <a class="row" class:current={router.route.page === "next"} href="#/next" onclick={onnavigate}><Icon name="next" />next</a>
+    <a class="row" class:current={router.route.page === "inbox"} href="#/inbox"><Icon name="inbox" />inbox</a>
+    <a class="row" class:current={router.route.page === "next"} href="#/next"><Icon name="next" />next</a>
 
     <h4>categories</h4>
     {#each categories as name}
@@ -29,7 +26,7 @@
             <a
                 class="grow"
                 href={categoryHref(name)}
-                onclick={onnavigate}><Icon name={categoryIcon(name)} />{name}</a
+               ><Icon name={categoryIcon(name)} />{name}</a
             >
             <button
                 class="chevron"
@@ -46,14 +43,14 @@
                     class="row sub"
                     class:current={router.route.page === "project" && router.route.number === project.number}
                     href={projectHref(project.number)}
-                    onclick={onnavigate}>{project.title}</a
+                   >{project.title}</a
                 >
             {/each}
             </div>
         {/if}
     {/each}
 
-    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings" onclick={onnavigate}><Icon name="settings" />settings</a>
+    <a class="row settings" class:current={router.route.page === "settings"} href="#/settings"><Icon name="settings" />settings</a>
 </nav>
 
 <style>
@@ -64,12 +61,6 @@
         height: 100%;
         padding: 1rem 0.6rem;
         overflow-y: auto;
-    }
-    /* drawer on a phone: clear of the notch and the screen edge */
-    @media (max-width: 768px) {
-        nav {
-            padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1.2rem 1rem calc(env(safe-area-inset-left, 0px) + 1.2rem);
-        }
     }
     h4 {
         margin: 1.4em 0.6rem 0.3em;
