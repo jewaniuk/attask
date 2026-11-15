@@ -1,9 +1,11 @@
 <script lang="ts">
     import type { BoardItem } from "../lib/api";
+    import { allowedStatuses } from "../../../worker/src/types";
+    import { board, changeStatus, drag } from "../lib/board.svelte";
     import Card from "./Card.svelte";
 
     /**
-     * Kanban board: one column per status, cards in the order given.
+     * Kanban board: one column per status, cards in the order given. On desktop a card can be dragged to another column, which sets its status like the status menu does; columns the board rules refuse are dimmed while dragging.
      *
      * Args:
      *   statuses: column names, left to right.
@@ -12,19 +14,48 @@
      */
     let { statuses, items, start }: { statuses: string[]; items: BoardItem[]; start: string } = $props();
 
-    let board: HTMLDivElement;
+    let boardEl: HTMLDivElement;
+    // the column the dragged card is over, to highlight it
+    let over: string | null = $state(null);
+
+    // a column takes the dragged card if the board rules allow its status and it is not the card's own column
+    function accepts(status: string): boolean {
+        return drag.item !== null && drag.item.status !== status && allowedStatuses(drag.item, board.items).includes(status);
+    }
+
+    function onDragOver(e: DragEvent, status: string): void {
+        if (!accepts(status)) return;
+        e.preventDefault(); // without this the browser refuses the drop
+        over = status;
+    }
+
+    function onDrop(status: string): void {
+        const item = drag.item;
+        over = null;
+        if (item && accepts(status)) changeStatus(item, status);
+    }
 
     // on a phone the board scrolls sideways, so centre the starting column; does nothing on desktop where nothing scrolls
     $effect(() => {
-        const column = board.querySelector<HTMLElement>(`[data-status="${start}"]`);
-        if (column) board.scrollLeft = column.offsetLeft - (board.clientWidth - column.offsetWidth) / 2;
+        const column = boardEl.querySelector<HTMLElement>(`[data-status="${start}"]`);
+        if (column) boardEl.scrollLeft = column.offsetLeft - (boardEl.clientWidth - column.offsetWidth) / 2;
     });
 </script>
 
-<div class="board" bind:this={board}>
+<div class="board" bind:this={boardEl}>
     {#each statuses as status}
         {@const cards = items.filter((i) => i.status === status)}
-        <section data-status={status} style="--st: var(--st-{status})">
+        <section
+            data-status={status}
+            role="group"
+            aria-label={status}
+            style="--st: var(--st-{status})"
+            class:refuses={drag.item !== null && drag.item.status !== status && !accepts(status)}
+            class:over={over === status}
+            ondragover={(e) => onDragOver(e, status)}
+            ondragleave={() => over === status && (over = null)}
+            ondrop={() => onDrop(status)}
+        >
             <h3>{status}</h3>
             <div class="cards">
                 {#each cards as item (item.id)}
@@ -50,6 +81,14 @@
         border-radius: 12px;
         padding: 0.8rem;
         min-width: 0;
+        transition: opacity 0.15s ease, outline-color 0.15s ease;
+        outline: 2px solid transparent;
+    }
+    section.refuses {
+        opacity: 0.4;
+    }
+    section.over {
+        outline-color: var(--st);
     }
     h3 {
         margin: 0 0 0.6rem;

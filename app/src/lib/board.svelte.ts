@@ -8,6 +8,9 @@ export const board: { items: BoardItem[]; error: string; selected: number | null
     busy: false,
 });
 
+/** The card being dragged between columns (mouse only), or `null`. Set by `Card`, read by `Board` to dim the columns that refuse it. */
+export const drag: { item: BoardItem | null } = $state({ item: null });
+
 /** Opens the detail sheet for a task, or closes it with `null`. */
 export function select(number: number | null): void {
     board.selected = number;

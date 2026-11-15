@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { board, select, tasksOf } from "../lib/board.svelte";
+    import { board, drag, select, tasksOf } from "../lib/board.svelte";
     import type { BoardItem } from "../lib/api";
     import { projectHref } from "../lib/router.svelte";
     import Icon from "./Icon.svelte";
@@ -13,7 +13,13 @@
     let taskCount = $derived(item.isProject ? tasksOf(board.items, item.number).length : 0);
 </script>
 
-<article>
+<!-- inbox cards have no parent, so they stay put -->
+<article
+    draggable={item.status !== "inbox"}
+    class:dragging={drag.item?.id === item.id}
+    ondragstart={() => (drag.item = item)}
+    ondragend={() => (drag.item = null)}
+>
     <div class="top">
         {#if item.isProject}
             <a class="title" href={projectHref(item.number)}>{item.title}</a>
@@ -54,6 +60,9 @@
             transform: translateY(-3px);
             box-shadow: var(--shadow-hover);
         }
+    }
+    article.dragging {
+        opacity: 0.4;
     }
     /* stretch the title link over the whole card */
     .title::after {
