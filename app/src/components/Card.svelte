@@ -5,17 +5,11 @@
     import Icon from "./Icon.svelte";
     import PriorityMenu from "./PriorityMenu.svelte";
 
-    /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and opens the detail sheet. The whole card is the link or button. Args: item: the card; compact: a task card with one muted line (project · effort · due date or "doing") instead of chips, not draggable. */
+    /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and opens the detail sheet. The whole card is the link or button. Args: item: the card; compact: a task card showing only its project and due date chips, not draggable. */
     let { item, compact = false }: { item: BoardItem; compact?: boolean } = $props();
 
-    // the compact line, only built when asked for
-    let line = $derived(
-        compact
-            ? [board.items.find((i) => i.isProject && i.number === item.parent)?.title, item.effort, item.due ?? (item.status === "doing" ? "doing" : null)]
-                  .filter((part) => part)
-                  .join(" · ")
-            : "",
-    );
+    // title of the task's project, only looked up for compact cards
+    let projectTitle = $derived(compact ? board.items.find((i) => i.isProject && i.number === item.parent)?.title : undefined);
     // a drag is a move, so the browser shows no copy (+) cursor; a link inside the card would otherwise be dragged in its place, hence draggable="false" on them
     function onDragStart(e: DragEvent): void {
         drag.item = item;
@@ -44,11 +38,11 @@
             <a class="issue" href={item.url} target="_blank" rel="noopener" draggable="false" aria-label="open issue #{item.number}"><Icon name="link" size={1} /></a>
         {/if}
     </div>
-    {#if compact}
-        {#if line}<div class="line">{line}</div>{/if}
-    {:else}
     <div class="meta">
-        {#if item.isProject}
+        {#if compact}
+            {#if projectTitle}<span class="chip">{projectTitle}</span>{/if}
+            {#if item.due}<span class="chip due"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
+        {:else if item.isProject}
             <PriorityMenu {item} />
             <span class="chip">{taskCount} open</span>
         {:else}
@@ -58,7 +52,6 @@
             {#if item.due}<span class="chip due"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
         {/if}
     </div>
-    {/if}
 </article>
 
 <style>
@@ -121,14 +114,7 @@
     }
     .meta:empty {
         display: none;
-    }
-    .line {
-        margin-top: 0.2rem;
-        color: var(--muted);
-        font-size: 0.85em;
-        overflow-wrap: anywhere;
-    }
-    .chip {
+    }    .chip {
         display: inline-flex;
         align-items: center;
         gap: 0.25em;

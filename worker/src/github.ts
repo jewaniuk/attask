@@ -53,6 +53,7 @@ query($cursor: String) {
 							number title url state
 							labels(first: 10) { nodes { name } }
 							parent { number }
+							issueDependenciesSummary { blockedBy }
 						}
 					}
 				}
@@ -101,6 +102,7 @@ export async function fetchBoard(token: string): Promise<BoardItem[]> {
 				effort: fields['Effort'] ?? null,
 				due: fields['Due'] ?? null,
 				updatedAt: node.updatedAt,
+				blocked: node.content.issueDependenciesSummary.blockedBy > 0, // counts open blockers only
 			});
 		}
 

@@ -20,6 +20,8 @@ export interface BoardItem {
 	due: string | null;
 	/** when the project item last changed (any field, ISO 8601), to sort `doing` tasks by recency */
 	updatedAt: string;
+	/** true while any issue this one is blocked by is still open */
+	blocked: boolean;
 }
 
 /** An issue's body and comments, as HTML rendered (and sanitized) by GitHub. */

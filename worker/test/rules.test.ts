@@ -18,6 +18,7 @@ function item(over: Partial<BoardItem>): BoardItem {
 		effort: null,
 		due: null,
 		updatedAt: '',
+		blocked: false,
 		...over,
 	};
 }

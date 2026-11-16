@@ -9,9 +9,6 @@ export const PLACES: string[] = ["home", "lab"];
 /** Task kinds that need the lab, hidden at `home`. */
 export const LAB_KINDS: string[] = ["hardware", "experiment"];
 
-/** Efforts small enough that a `backlog` task makes the Next list. */
-const QUICK_EFFORTS: string[] = ["15m", "1h"];
-
 /** How far ahead a due date counts as soon, in days. */
 const DUE_SOON_DAYS = 7;
 
@@ -23,6 +20,8 @@ export interface NextFilters {
     place: string;
     /** a category name, or `all` */
     category: string;
+    /** also list `backlog` tasks, after the rest */
+    backlog: boolean;
 }
 
 // the task's project, or undefined for inbox tasks
@@ -49,7 +48,7 @@ function addDays(date: string, days: number): string {
 }
 
 /**
- * Open tasks that are overdue or due within 7 days, soonest first. Not filtered by time or place.
+ * Open tasks that are overdue or due within 7 days, soonest first, blocked or not. Not filtered by time or place.
  *
  * Args:
  *     items: The whole board.
@@ -64,7 +63,7 @@ export function dueSoon(items: BoardItem[], category: string, today: string): Bo
 }
 
 /**
- * What can be done now: open tasks of `doing` projects that pass the toggles, in order of `doing` (most recently updated first), then `next` (by project priority, then number), then `backlog` tasks of effort `15m` or `1h` (same order).
+ * What can be done now: open, unblocked tasks of `doing` projects that pass the toggles, in order of `doing` (most recently updated first), then `next` (by project priority, then number), then `backlog` if asked for (same order).
  *
  * Args:
  *     items: The whole board.
@@ -78,9 +77,10 @@ export function nextList(items: BoardItem[], filters: NextFilters): BoardItem[] 
             (t) =>
                 t.open &&
                 !t.isProject &&
+                !t.blocked &&
                 project(t)?.status === "doing" &&
                 group(t) !== -1 &&
-                (t.status !== "backlog" || QUICK_EFFORTS.includes(t.effort ?? "")) &&
+                (t.status !== "backlog" || filters.backlog) &&
                 inCategory(items, t, filters.category) &&
                 fitsTime(t, filters.time) &&
                 (filters.place === "lab" || !LAB_KINDS.includes(t.kind ?? "")),

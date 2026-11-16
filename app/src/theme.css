@@ -256,6 +256,35 @@ button.primary:hover {
     background: var(--accent-hover);
 }
 
+/* segmented control: a track of buttons, the chosen one (.on) raised like a card; used by Settings and Next */
+.segmented {
+    display: flex;
+    padding: 3px;
+    gap: 3px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.segmented button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    flex: 1;
+    padding: 0.4em 0.6em;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.segmented button.on {
+    color: var(--text);
+    background: var(--card);
+    box-shadow: var(--shadow-rest);
+}
+
 /* sunset gradient bar along the bottom of the window; on a phone the bottom bar carries the gradient instead */
 body::after {
     content: "";

@@ -3,7 +3,7 @@
     import { board, categoryNames } from "../lib/board.svelte";
     import { dueSoon, nextList, PLACES, TIMES } from "../lib/next";
 
-    /** What can be done right now, built from the board when opened: three rows of toggles (time, place, category), tasks due soon, then one list of tasks, 5 at first. The toggles are remembered on this device. */
+    /** What can be done right now, built from the board when opened: segmented toggles (category, time, then place and backlog), tasks due soon, then one list of tasks, 5 at first. The toggles are remembered on this device. */
 
     // first rows of the list before "show more"
     const FIRST = 5;
@@ -24,13 +24,15 @@
         }
     }
 
+    let category = $state(load("category", "all"));
     let time = $state(load("time", "any"));
     let place = $state(load("place", "lab"));
-    let category = $state(load("category", "all"));
+    let backlog = $state(load("backlog", "false") === "true");
     let expanded = $state(false);
+    $effect(() => save("category", category));
     $effect(() => save("time", time));
     $effect(() => save("place", place));
-    $effect(() => save("category", category));
+    $effect(() => save("backlog", String(backlog)));
 
     let categories = $derived(["all", ...categoryNames(board.items)]);
     // a saved category that no longer exists falls back to all
@@ -38,24 +40,31 @@
     const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
     let due = $derived(dueSoon(board.items, shownCategory, today));
     // tasks already under due soon are not repeated
-    let list = $derived(nextList(board.items, { time, place, category: shownCategory }).filter((t) => !due.includes(t)));
+    let list = $derived(nextList(board.items, { time, place, category: shownCategory, backlog }).filter((t) => !due.includes(t)));
     let shown = $derived(expanded ? list : list.slice(0, FIRST));
-
-    let rows = $derived([
-        { choices: TIMES, value: time, set: (v: string) => (time = v) },
-        { choices: PLACES, value: place, set: (v: string) => (place = v) },
-        { choices: categories, value: shownCategory, set: (v: string) => (category = v) },
-    ]);
 </script>
 
 <div class="toggles">
-    {#each rows as row, r (r)}
-        <div class="row" role="group">
-            {#each row.choices as choice (choice)}
-                <button class:on={choice === row.value} aria-pressed={choice === row.value} onclick={() => row.set(choice)}>{choice}</button>
+    <div class="segmented" role="group" aria-label="category">
+        {#each categories as choice (choice)}
+            <button class:on={choice === shownCategory} aria-pressed={choice === shownCategory} onclick={() => (category = choice)}>{choice}</button>
+        {/each}
+    </div>
+    <div class="segmented" role="group" aria-label="time">
+        {#each TIMES as choice (choice)}
+            <button class:on={choice === time} aria-pressed={choice === time} onclick={() => (time = choice)}>{choice}</button>
+        {/each}
+    </div>
+    <div class="row">
+        <div class="segmented place" role="group" aria-label="place">
+            {#each PLACES as choice (choice)}
+                <button class:on={choice === place} aria-pressed={choice === place} onclick={() => (place = choice)}>{choice}</button>
             {/each}
         </div>
-    {/each}
+        <div class="segmented">
+            <button class:on={backlog} aria-pressed={backlog} onclick={() => (backlog = !backlog)}>backlog</button>
+        </div>
+    </div>
 </div>
 
 {#if due.length > 0}
@@ -81,26 +90,21 @@
     .toggles {
         display: flex;
         flex-direction: column;
-        gap: 0.3rem;
+        gap: 0.4rem;
+        max-width: 36rem;
         margin: 0.5rem 0 1rem;
+        font-size: 0.9em;
     }
     .row {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.1rem 1rem;
+        gap: 0.4rem;
     }
-    .row button,
-    .more {
-        font: inherit;
-        padding: 0.15rem 0;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--faint);
+    /* place gets two thirds of the row, backlog the rest */
+    .place {
+        flex: 2;
     }
-    .row button.on {
-        color: var(--text);
-        font-weight: 500;
+    .row > :last-child {
+        flex: 1;
     }
     .list {
         display: flex;
@@ -112,7 +116,12 @@
         margin-bottom: 1.25rem;
     }
     .more {
+        font: inherit;
         margin-top: 0.6rem;
+        padding: 0.15rem 0;
+        background: none;
+        border: none;
+        cursor: pointer;
         color: var(--muted);
         font-size: 0.9em;
     }

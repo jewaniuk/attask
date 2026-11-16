@@ -18,6 +18,7 @@ function item(over: Partial<BoardItem>): BoardItem {
         effort: null,
         due: null,
         updatedAt: "",
+        blocked: false,
         ...over,
     };
 }
@@ -37,14 +38,18 @@ const board: BoardItem[] = [
     item({ number: 17, parent: 1, status: "next", effort: "15m", kind: "hardware" }),
     item({ number: 18, parent: 1, status: "next", effort: "multi-day" }),
     item({ number: 19, parent: 1, status: "done", open: false }),
+    item({ number: 24, parent: 2, status: "next", effort: "15m", blocked: true }),
 ];
 
-const all: NextFilters = { time: "any", place: "lab", category: "all" };
+const all: NextFilters = { time: "any", place: "lab", category: "all", backlog: true };
 const numbers = (items: BoardItem[]): number[] => items.map((i) => i.number);
 
 describe("nextList", () => {
-    it("orders doing by recency, next by project priority, quick backlog last", () => {
-        expect(numbers(nextList(board, all))).toEqual([13, 12, 11, 10, 17, 18, 14]);
+    it("orders doing by recency, next by project priority, backlog last, and leaves out blocked tasks", () => {
+        expect(numbers(nextList(board, all))).toEqual([13, 12, 11, 10, 17, 18, 14, 15]);
+    });
+    it("leaves out backlog when the toggle is off", () => {
+        expect(numbers(nextList(board, { ...all, backlog: false }))).toEqual([13, 12, 11, 10, 17, 18]);
     });
     it("caps effort by the time toggle and drops tasks with no effort", () => {
         expect(numbers(nextList(board, { ...all, time: "1h" }))).toEqual([12, 10, 17, 14]);
