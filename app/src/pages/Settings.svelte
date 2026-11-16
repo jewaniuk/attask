@@ -134,32 +134,6 @@
     .note.bad {
         color: var(--accent);
     }
-    .segmented {
-        display: flex;
-        padding: 3px;
-        gap: 3px;
-        background: var(--bg-alt);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-    }
-    .segmented button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.4em;
-        flex: 1;
-        padding: 0.4em 0.6em;
-        color: var(--muted);
-        background: none;
-        border: none;
-        border-radius: 7px;
-        cursor: pointer;
-    }
-    .segmented button.on {
-        color: var(--text);
-        background: var(--card);
-        box-shadow: var(--shadow-rest);
-    }
     /* secondary buttons: soft field look like the inputs, not the browser default */
     form button:not(.primary) {
         display: inline-flex;

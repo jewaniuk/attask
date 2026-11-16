@@ -25,6 +25,7 @@ Local secrets live in `worker/.dev.vars` (git-ignored, copy `.dev.vars.example`)
 Run before every PR. All must pass.
 
 - `cd app && npm run check`
+- `cd app && npx vitest run` (unit tests cover the Next page's pure filters in `src/lib/next.ts`)
 - `cd worker && npm run cf-typegen && npx tsc --noEmit`
 - `cd worker && npx vitest run --passWithNoTests` (unit tests cover `src/rules.ts` only, added in checkpoint 3)
 

@@ -18,6 +18,10 @@ export interface BoardItem {
 	effort: string | null;
 	/** YYYY-MM-DD */
 	due: string | null;
+	/** when the project item last changed (any field, ISO 8601), to sort `doing` tasks by recency */
+	updatedAt: string;
+	/** true while any issue this one is blocked by is still open */
+	blocked: boolean;
 }
 
 /** An issue's body and comments, as HTML rendered (and sanitized) by GitHub. */
@@ -28,6 +32,15 @@ export interface ItemDetail {
 
 /** Priorities a project may have, highest first. */
 export const PRIORITIES: string[] = ['!!!', '!!', '!', '-'];
+
+/** Position of a priority in `PRIORITIES`, highest first; items without one go last. */
+export function priorityRank(priority: string | null): number {
+	const at = priority === null ? -1 : PRIORITIES.indexOf(priority);
+	return at === -1 ? PRIORITIES.length : at;
+}
+
+/** Efforts a task may have, smallest first. */
+export const EFFORTS: string[] = ['15m', '1h', 'half-day', 'multi-day'];
 
 /** Statuses a project may have. */
 export const PROJECT_STATUSES: string[] = ['backlog', 'doing', 'waiting', 'done'];
