@@ -5,11 +5,17 @@
     import Icon from "./Icon.svelte";
     import PriorityMenu from "./PriorityMenu.svelte";
 
-    /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and opens the detail sheet. The whole card is the link or button. Args: item: the card; showProject: also show the task's project title. */
-    let { item, showProject = false }: { item: BoardItem; showProject?: boolean } = $props();
+    /** A project shows its priority and open task count and links to its page; a task shows kind, effort and due date and opens the detail sheet. The whole card is the link or button. Args: item: the card; compact: a task card with one muted line (project · effort · due date or "doing") instead of chips, not draggable. */
+    let { item, compact = false }: { item: BoardItem; compact?: boolean } = $props();
 
-    // title of the task's project, only looked up when asked for
-    let projectTitle = $derived(showProject ? board.items.find((i) => i.isProject && i.number === item.parent)?.title : undefined);
+    // the compact line, only built when asked for
+    let line = $derived(
+        compact
+            ? [board.items.find((i) => i.isProject && i.number === item.parent)?.title, item.effort, item.due ?? (item.status === "doing" ? "doing" : null)]
+                  .filter((part) => part)
+                  .join(" · ")
+            : "",
+    );
     // a drag is a move, so the browser shows no copy (+) cursor; a link inside the card would otherwise be dragged in its place, hence draggable="false" on them
     function onDragStart(e: DragEvent): void {
         drag.item = item;
@@ -21,9 +27,9 @@
     let taskCount = $derived(item.isProject ? tasksOf(board.items, item.number).length : 0);
 </script>
 
-<!-- inbox cards have no parent, so they stay put -->
+<!-- inbox cards have no parent, so they stay put; compact cards are on Next, which has no columns -->
 <article
-    draggable={item.status !== "inbox"}
+    draggable={item.status !== "inbox" && !compact}
     class:dragging={drag.item?.id === item.id}
     ondragstart={onDragStart}
     ondragend={() => (drag.item = null)}
@@ -38,18 +44,21 @@
             <a class="issue" href={item.url} target="_blank" rel="noopener" draggable="false" aria-label="open issue #{item.number}"><Icon name="link" size={1} /></a>
         {/if}
     </div>
+    {#if compact}
+        {#if line}<div class="line">{line}</div>{/if}
+    {:else}
     <div class="meta">
         {#if item.isProject}
             <PriorityMenu {item} />
             <span class="chip">{taskCount} open</span>
         {:else}
             {#if item.status === "inbox"}<span class="chip">#{item.number}</span>{/if}
-            {#if projectTitle}<span class="chip">{projectTitle}</span>{/if}
             {#if item.kind}<span class="chip">{item.kind}</span>{/if}
             {#if item.effort}<span class="chip">{item.effort}</span>{/if}
             {#if item.due}<span class="chip due"><Icon name="calendar" size={0.9} />{item.due}</span>{/if}
         {/if}
     </div>
+    {/if}
 </article>
 
 <style>
@@ -112,6 +121,12 @@
     }
     .meta:empty {
         display: none;
+    }
+    .line {
+        margin-top: 0.2rem;
+        color: var(--muted);
+        font-size: 0.85em;
+        overflow-wrap: anywhere;
     }
     .chip {
         display: inline-flex;

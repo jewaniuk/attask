@@ -41,7 +41,7 @@ query($cursor: String) {
 			items(first: 100, after: $cursor) {
 				pageInfo { hasNextPage endCursor }
 				nodes {
-					id
+					id updatedAt
 					fieldValues(first: 20) {
 						nodes {
 							... on ProjectV2ItemFieldSingleSelectValue { name field { ... on ProjectV2FieldCommon { name } } }
@@ -100,6 +100,7 @@ export async function fetchBoard(token: string): Promise<BoardItem[]> {
 				kind: fields['Kind'] ?? null,
 				effort: fields['Effort'] ?? null,
 				due: fields['Due'] ?? null,
+				updatedAt: node.updatedAt,
 			});
 		}
 

@@ -17,6 +17,7 @@ function item(over: Partial<BoardItem>): BoardItem {
 		kind: null,
 		effort: null,
 		due: null,
+		updatedAt: '',
 		...over,
 	};
 }

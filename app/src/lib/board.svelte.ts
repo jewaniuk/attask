@@ -1,3 +1,4 @@
+import { priorityRank } from "../../../worker/src/types";
 import { closeTaskNotPlanned, deleteTask, fetchBoard, postPriority, postStatus, type BoardItem, type StatusWrite } from "./api";
 
 /** Board state shared by every component. Fill it with `loadBoard`. `busy` is true while a deletion is waiting on the Worker, so the sheet shows a spinner and stays open. */
@@ -41,7 +42,7 @@ export function categoryNames(items: BoardItem[]): string[] {
 export function projectsIn(items: BoardItem[], category: string): BoardItem[] {
     return openProjects(items)
         .filter((p) => p.category === category)
-        .sort((a, b) => rank(a.priority) - rank(b.priority) || a.number - b.number);
+        .sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority) || a.number - b.number);
 }
 
 /** Open tasks of one project, in issue order. */
@@ -49,13 +50,6 @@ export function tasksOf(items: BoardItem[], project: number): BoardItem[] {
     return items
         .filter((i) => i.open && !i.isProject && i.parent === project)
         .sort((a, b) => a.number - b.number);
-}
-
-// position of a priority value, highest first; items without one go last
-function rank(priority: string | null): number {
-    const order = ["!!!", "!!", "!", "-"];
-    const at = priority === null ? -1 : order.indexOf(priority);
-    return at === -1 ? order.length : at;
 }
 
 // shows what the Worker changed; a done task is closed by the board, so it leaves the open lists
@@ -130,19 +124,4 @@ export async function dropTask(item: BoardItem): Promise<void> {
 /** Open tasks without a project, newest first. */
 export function inboxTasks(items: BoardItem[]): BoardItem[] {
     return items.filter((i) => i.open && !i.isProject && i.status === "inbox").sort((a, b) => b.number - a.number);
-}
-
-/** Tasks to do now, per category: `next` or `doing` tasks of `doing` projects, ordered by project priority, then `doing` before `next`. */
-export function nextTasks(items: BoardItem[]): { category: string; tasks: BoardItem[] }[] {
-    const groups: { category: string; tasks: BoardItem[] }[] = [];
-    for (const category of categoryNames(items)) {
-        const projects = projectsIn(items, category).filter((p) => p.status === "doing");
-        const tasks = projects.flatMap((p) =>
-            tasksOf(items, p.number)
-                .filter((t) => t.status === "next" || t.status === "doing")
-                .sort((a, b) => Number(b.status === "doing") - Number(a.status === "doing") || a.number - b.number),
-        );
-        if (tasks.length > 0) groups.push({ category, tasks });
-    }
-    return groups;
 }
